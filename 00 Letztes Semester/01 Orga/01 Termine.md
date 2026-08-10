@@ -1,0 +1,24 @@
+- 2-wöchiger Rücksprache Rhythmus mit der Erstbetreuerin
+	- individuelle Serie von Statusterminen mit Erstellung eines Statusberichtes als die aktuelle PDF und was sich verändert hat
+---
+- [x] 30.03.2026
+	- Themenvorschläge einsehen
+	- Umfrage **Online-Themenwahl** teilnehmen
+- [x] 13.04.2026 Auftaktveranstaltung
+- [x] 17.04.2026 - Rücksprache zur Finalisierung der Themenwahl + Klärung von Fragen
+- [x] 21.04.2026 - Einreichung der Spezifikation
+- [x] 20.04.2026 - 24.04.2026 Themenvergabe
+- [ ] 07.05.2026 (17:30-19:00; C.117) - Gruppentermin
+	- Mitwirkende in Teilgruppe **(1)**: **Berger**, **Langrehr**, **Ley**, **Schallenberg** und **Thumm**; Mitwirkende in Teilgruppe **(2)**: **Brüggemann**, **Busse**, **Cygan** und **Ludwig**.
+	- Erläuterung in 10 Minuten die mit der Seminararbeit verfolgte Zielsetzung
+	- Bereits systematisch mit der Literatur auseinandergesetzt und die Forschungsfrage hergeleitet und überprüft
+	- Entsprechend ausgearbeitete Vorversion liegt vor die Sie heranziehen; kein separates Folienmaterial
+- [ ] 08.05.2026 - Formale Themenannahme
+	- per E-Mail
+- [ ] 08.06.2026 - Bereitstellung einer Vorversion zur Anfertigung von Peer-Reviews
+- [ ] 11.06.2026 - Gruppentermin (17:30-19:00; C.117)
+	- fertiges Review liegt vor
+	- Erläuterung der wichtigsten Verbesserungsvorschläge
+- [ ] 06.07.2026 -  Abgabe der finalen Ausarbeitung
+	- [ ] Bereitstellung der Eidesstastlichen Erklärung als separater PDF
+- [ ] ??.??.2026 - Präsentation

@@ -1,0 +1,11 @@
+## Inhalt
+- Forschungsfragen
+- Quellen für die Suche + Kriterien für die Auswahl der Quellen
+- Suchstrings und Aufbau
+	- aus den Forschungsfragen definierte Suchbegriffe
+	- ggf. mit logischen Ausdrücken
+- Auswahlkriterien für Forschungspapiere
+- Inklusions- und Exklusionskriterien (IC/EC)
+- Qualitätskriterien
+- Strategie für Datenextraktion (Extraktion von Parametern)
+- Strategie für Datensynthese (Interpretation, Abstraktion)
