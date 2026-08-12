@@ -1,7 +1,7 @@
 #import "@preview/charged-ieee:0.1.4": ieee
 
 #show: ieee.with(
-  title: [Strategien zur automatisierten Identifikation von Service-Schnittstellen bei der Migration von Monolithen zu Microservices],
+  title: [Specification: Strategies for the automated identification of service interfaces during the migration from monoliths to microservices],
   abstract: [
     #lorem(120)
   ],
@@ -15,7 +15,7 @@
     ),
   ),
   index-terms: (),
-  bibliography: bibliography("refs.bib"),
+  bibliography: bibliography("refs.bib", full: true, style: "ieee"),
   figure-supplement: [Fig.],
 )
 
@@ -32,4 +32,4 @@ _Wie gehen Sie bei der Erstellung der Ergebnisse vor (Arbeitsschritte) und welch
 _Welche Ziele verfolgen Sie mit der Beantwortung der behandelten Fragen und welche  wesentlichen Ergebnisse entstehen dabei?_
 
 = Wissenschaftlicher Beitrag
-_Welchen Beitrag zur Bewältigung der Problemstellung leistet Ihre Arbeit? Welche neuen Erkenntnisse können  Lesende Ihrer Arbeit erwarten?_
+_Welchen Beitrag zur Bewältigung der Problemstellung leistet Ihre Arbeit? Welche neuen Erkenntnisse können Lesende Ihrer Arbeit erwarten?_
