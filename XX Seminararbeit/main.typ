@@ -1,5 +1,7 @@
 #import "@preview/charged-ieee:0.1.4": ieee
 
+#let citeauthor(cite-label) = cite(cite-label, form: "prose")
+
 #show: ieee.with(
   title: [SLR: Strategies for the automated identification of service interfaces during the migration from monoliths to microservices],
   abstract: [
