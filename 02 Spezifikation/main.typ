@@ -8,7 +8,7 @@
 // _Was ist die Motivation für Ihr Thema und in welchem Kontext hat das Thema Relevanz?_
 In Software Engineering of business applications, the architecture and organization of software components are playing a pivotal rule to enable desired features like _scalability_, _maintainability_ and _deployability_.
 
-As software become more and more complex these featured are more and more less achieved due to the predominant implementation of _Monolithical Architectures_ @abgaz2023Decomposition.
+As software become more and more complex these features are more and more less achieved due to the predominant implementation of _Monolithical Architectures_ @abgaz2023Decomposition.
 
 == Monolithical Architectures
 _Monolithtical Architectures_ decompose the software according horizontal and technical oriented layers, which is illustrated in @fig:monolith. Between these layers are often lots of dependencies resulting in a loss of flexibility whenever the software have to be adapted hindering _agile software development_ and _maintenance_. #todo[Quelle?]
