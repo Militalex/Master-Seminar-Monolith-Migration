@@ -1,6 +1,10 @@
 #[
 #set list(spacing: 1em)
 
+== Searched Databases with Search Strings
+- #link("https://ieeexplore.ieee.org/Xplore/home.jsp")[IEEE Xplore Digital Library]
+  - `"microservice*" AND "identif*" AND ("interface" OR "api")`
+
 == Searched Journals
 - #link("https://www.sciencedirect.com/journal/journal-of-systems-and-software")[Journal of Systems and Software]
 - #link("https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=32")[IEEE Transactions on Software Engineering]
