@@ -32,6 +32,12 @@
     scope: "parent",
     caption: [Scaling and deploying of Monoliths and Microservices by #citeauthor(<lewis2014Microservices>)]
   ) <fig:monolith_and_microservices>
+
+  === Domain-Driven Design (DDD)
+  #todo[DDD Buch verwenden und referenzieren]
+  - tactical design and strategiel design
+  - tactical design defines how the domain model is composed #todo[Beispiel einbauen?] and to identify bounded Contexts
+  - strategiel design defines how the bounded contexts communicates
 ]
 
 = Related Work

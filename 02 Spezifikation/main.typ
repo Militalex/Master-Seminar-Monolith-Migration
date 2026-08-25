@@ -52,10 +52,7 @@ Microservices seek to be as independent as possible by trying to minimize depend
 
   === Domain-Driven Design (DDD)
   - let migration engineer analyse and identify application's domain using techniques like _Domain-Driven Design (DDD)_ to obtain service boundaries @abgaz2023Decomposition @gysel2016Service
-  - DDD is a collection of abstract concepts helping to model complex and large software with respect to the domain @nockemann2025DomainDriven
-    - tactical design and strategiel design
-    - tactical design defines how the domain model is composed #todo[Beispiel einbauen?] and to identify bounded Contexts
-    - strategiel design defines how the bounded contexts communicates #todo[DDD Buch verwenden und referenzieren]
+  - DDD is a collection of abstract concepts helping to model complex and large software with respect to the domain @nockemann2025DomainDriven #todo[In Seminararbeit DDD genauer erklären und hier nur kurz]
 ]
 
 = Probleme / Fragestellungen
