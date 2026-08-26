@@ -3,7 +3,7 @@
 // Own Commands
 #let citeauthor(cite-label) = cite(cite-label, form: "prose")
 
-#let note(body) = text(fill: color.rgb(0, 46, 87))[#v(1em)*NOTES:*\ #body]
+#let note(body) = text(fill: color.darken(red, 50%))[#v(1em)*NOTES:*\ #body]
 #let todo(body) = text(fill: purple)[*< TODO: #body >*]
 
 #let template-setup(
