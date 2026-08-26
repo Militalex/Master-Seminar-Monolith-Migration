@@ -27,9 +27,12 @@ except OSError:
 TARGET_COLLECTION = "Master Seminar"
 USE_CUSTOM_THEME = True
 
+# Demo-/Template-Notizen ohne eigenen Inhalt filtern (True = aktivieren, False = deaktivieren)
+FILTER_DEMO_FILES = True
+
 # Steuerung, was exportiert werden soll:
-# Mögliche Werte: "Annotated Bibs", "Notes", "Papers"
-EXPORT_OPTIONS = ["Annotated Bibs"]
+# Mögliche Werte: "Annotated Bibs", "Notes", "Publications", "PDFs"
+EXPORT_OPTIONS = ["Annotated Bibs", "PDFs"]
 
 ZOTERO_DIR = Path.home() / "Zotero"
 EXPORT_DIR = Path(__file__).parent.resolve()
@@ -90,17 +93,12 @@ def html_to_typst(html_str: str) -> str:
         typst_output = text
 
     # --- SÄUBERUNG DES TYPST-OUTPUTS ---
-
-    # 1. Zotero/Pandoc-HTML-Labels wie <methods>, <annotated-bib> etc. löschen
     typst_output = re.sub(r"^\s*<[a-zA-Z0-9_-]+>\s*$", "", typst_output, flags=re.MULTILINE)
 
-    # 2. Escaped Sonderzeichen & Checkboxen korrigieren
     typst_output = typst_output.replace(r"\[ \]", "[ ]").replace(
         r"\[x\]", "[x]"
     ).replace(r"\[ ~\]", "[~]").replace(r"\(-)", "(-)").replace(r"\(+)", "(+)")
 
-    # 3. Leerzeilen gezielt innerhalb von Listenblöcken entfernen
-    # splitlines() entfernt \r\n sowie \n sauber ohne Rest-Steuerzeichen
     lines = typst_output.splitlines()
     cleaned_lines = []
     in_list = False
@@ -119,7 +117,6 @@ def html_to_typst(html_str: str) -> str:
             in_list = True
             cleaned_lines.append(line)
         elif is_empty:
-            # Wenn wir in einer Liste sind, verwerfen wir die Leerzeile außer wir sind vor einer Überschrift
             if not in_list or nextLine.startswith("="):
                 cleaned_lines.append(line)
         else:
@@ -127,10 +124,7 @@ def html_to_typst(html_str: str) -> str:
                 in_list = False
             cleaned_lines.append(line)
 
-    # Zusammenfügen mit meinsamen Unix-Style Zeilenumbrüchen
     typst_output = "\n".join(cleaned_lines)
-
-    # 4. Exzessive Leerzeilen reduzieren
     typst_output = re.sub(r"\n{3,}", "\n\n", typst_output)
 
     return typst_output.strip()
@@ -174,9 +168,7 @@ def clean_export_directory(export_dir, current_script):
             else:
                 long_item.unlink()
         except Exception as e:
-            print(
-                f"Warnung: '{item.name}' konnte nicht gelöscht werden ({e})"
-            )
+            print(f"Warnung: '{item.name}' konnte nicht gelöscht werden ({e})")
 
 
 def compile_typst_file(typ_path: Path, pdf_path: Path):
@@ -185,12 +177,8 @@ def compile_typst_file(typ_path: Path, pdf_path: Path):
         if USE_CUSTOM_THEME:
             wrapper_path = typ_path.parent / f"_temp_{typ_path.stem}.typ"
             rel_include_path = typ_path.name
-            wrapper_content = (
-                f'{VSCODE_MARKDOWN_THEME}\n#include "{rel_include_path}"'
-            )
-            prepare_path(wrapper_path).write_text(
-                wrapper_content, encoding="utf-8"
-            )
+            wrapper_content = f'{VSCODE_MARKDOWN_THEME}\n#include "{rel_include_path}"'
+            prepare_path(wrapper_path).write_text(wrapper_content, encoding="utf-8")
             target_to_compile = wrapper_path
         else:
             target_to_compile = typ_path
@@ -206,9 +194,7 @@ def compile_typst_file(typ_path: Path, pdf_path: Path):
             prepare_path(wrapper_path).unlink()
 
         if res.returncode != 0:
-            print(
-                f"Typst-Kompilierfehler bei '{typ_path.name}': {res.stderr.strip()}"
-            )
+            print(f"Typst-Kompilierfehler bei '{typ_path.name}': {res.stderr.strip()}")
     except FileNotFoundError:
         pass
     except Exception as e:
@@ -216,6 +202,18 @@ def compile_typst_file(typ_path: Path, pdf_path: Path):
 
 
 def get_item_full_metadata(cursor, item_id):
+    cursor.execute(
+        """
+        SELECT t.typeName
+        FROM items i
+        JOIN itemTypes t ON i.itemTypeID = t.itemTypeID
+        WHERE i.itemID = ?
+    """,
+        (item_id,),
+    )
+    row_type = cursor.fetchone()
+    item_type = row_type[0] if row_type else ""
+
     cursor.execute(
         """
         SELECT v.value 
@@ -277,7 +275,7 @@ def get_item_full_metadata(cursor, item_id):
     else:
         author_short = ""
 
-    return title, creators, venue, year, url_val, clean_name(author_short)
+    return item_type, title, creators, venue, year, url_val, clean_name(author_short)
 
 
 def format_ieee_citation(creators, title, venue, year, url):
@@ -367,6 +365,20 @@ def build_filename(author, year, title, tag=None):
     return clean_name(full_stem)
 
 
+def is_empty_demo_note(typ_text: str) -> bool:
+    """Prüft, ob eine Notiz nur aus Standard-Überschriften und Typst-Layout besteht."""
+    # 1. Überschriften entfernen (z. B. == Annotated Bibliography)
+    text = re.sub(r"^(?:==|=)\s+.*$", "", typ_text, flags=re.MULTILINE)
+    
+    # 2. Typst-Syntax & Standard-Labels entfernen
+    text = re.sub(r"#block|\btext\b|\bsize\b|\bfill\b|\binset\b|\bradius\b|\bwidth\b|\bSource\b", "", text)
+    
+    # 3. Prüfen, ob noch alphanumerische Zeichen (A-Z, 0-9) übrig sind
+    has_content = bool(re.search(r"[a-zA-Z0-9]", text))
+    
+    return not has_content
+
+
 def export_zotero():
     db_path = ZOTERO_DIR / "zotero.sqlite"
     if not db_path.exists():
@@ -431,12 +443,27 @@ def export_zotero():
                 target_folder = EXPORT_DIR / get_relative_path(coll_id)
                 prepare_path(target_folder).mkdir(parents=True, exist_ok=True)
 
-                title, creators, venue, year, url, author_short = (
+                item_type, title, creators, venue, year, url, author_short = (
                     get_item_full_metadata(cursor, item_id)
                 )
 
-                # 1. Paper PDFs kopieren (falls aktiviert)
-                if "Papers" in EXPORT_OPTIONS:
+                publication_types = (
+                    "journalArticle",
+                    "conferencePaper",
+                    "preprint",
+                    "report",
+                    "thesis",
+                    "book",
+                    "bookSection",
+                )
+                is_publication = item_type in publication_types
+
+                should_export_pdf = (is_publication and "Publications" in EXPORT_OPTIONS) or (
+                    not is_publication and "PDFs" in EXPORT_OPTIONS
+                )
+
+                # 1. PDFs kopieren
+                if should_export_pdf:
                     cursor.execute(
                         """
                         SELECT itemAttachments.path, items.key
@@ -506,6 +533,10 @@ def export_zotero():
                     if not (n[0] and n[0].strip()):
                         continue
                     typ_text = html_to_typst(n[0])
+
+                    # Demo-Dateien filtern, sofern die Option eingeschaltet ist
+                    if FILTER_DEMO_FILES and is_empty_demo_note(typ_text):
+                        continue
 
                     h_match = re.search(r"^(?:==|=)\s+(.+)$", typ_text, re.MULTILINE)
                     h_text = h_match.group(1) if h_match else ""
@@ -587,9 +618,7 @@ def export_zotero():
         finally:
             conn.close()
 
-    print(
-        f"Export von '{TARGET_COLLECTION}' erfolgreich abgeschlossen!"
-    )
+    print(f"Export von '{TARGET_COLLECTION}' erfolgreich abgeschlossen!")
 
 
 if __name__ == "__main__":
