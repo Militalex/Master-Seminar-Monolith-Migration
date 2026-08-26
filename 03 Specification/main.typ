@@ -1,4 +1,4 @@
-#import "../00 assets/preamble.typ": *
+#import "/00 assets/preamble.typ": *
 
 #show: template-setup.with(
   doc-title: [Specification: Strategies for the automated identification of service interfaces during the migration from monoliths to microservices],
@@ -18,7 +18,7 @@ Monoliths are traditionally built as a single unit which can only be deployed an
 As the requirements towards the software are evolving there is need for software to be flexible, adaptable and deployable without influencing other parts of the software.
 
 #figure(
-  image("../00 assets/figures/Monolith.jpg", width: 90%),
+  image("/00 assets/figures/Monolith.jpg", width: 90%),
   caption: [Illustration of a business application built as a monolith. Original illustration from #citeauthor(<nockemann2025DomainDriven>).]
 ) <fig:monolith>
 
@@ -28,7 +28,7 @@ Due to the downsides of Monolithtical Architectures, researchers has reached out
 _Microservice Architectures_ seeks to overcome the shortcomings of monoliths and have therefore gained significant attraction @garriga2018Taxonomy. The core idea behind this novel kind of software organization is to decompose the software vertically along enterprise business capabilities as illustrated in @fig:microservices.
 
 #figure(
-  image("../00 assets/figures/Microservices.jpg", width: 80%),
+  image("/00 assets/figures/Microservices.jpg", width: 80%),
   caption: [Illustration of a business application built as microservices. Original illustration from #citeauthor(<nockemann2025DomainDriven>).]
 ) <fig:microservices>
 
@@ -48,11 +48,24 @@ Microservices seek to be as independent as possible by trying to minimize depend
   == Migration
   - companies which have invented monolithical architectures may consider to migrate to a Microservice Architecture
   - to perform that they have to decompose their monolithical application into smaller services
-  - decomposing a software into smaller parts have always been a challenge in software engineering @gysel2016Service
+  - decomposing a software into smaller parts have always been a challenge in software engineering and remains a complex and resource intensive task @gysel2016Service @trabelsi2025Systematic
+  - migration involves identifying service boundaries and packaging them into self-contained microservices with defined APIs @trabelsi2025Systematic
+  - effective migration require robust strategies for deploying microservices and guaranteeing desired features like scalability, security and fault tolerance @trabelsi2025Systematic
+  - #citeauthor(<abdellatif2021taxonomy>) present a taxonomy of migration approaches #todo[Read @abdellatif2021taxonomy]:
+    - Heuristic-based methods
+    - Domain-Driven Design
+    - ... ?
 
   === Domain-Driven Design (DDD)
   - let migration engineer analyse and identify application's domain using techniques like _Domain-Driven Design (DDD)_ to obtain service boundaries @abgaz2023Decomposition @gysel2016Service
   - DDD is a collection of abstract concepts helping to model complex and large software with respect to the domain @nockemann2025DomainDriven #todo[In Seminararbeit DDD genauer erklären und hier nur kurz]
+
+  === Machine Learning (ML) @trabelsi2025Systematic
+  - ML offer a promising avenue to tackle the manuel intervention and adaptability challenges
+    - ML can further improve service boundary identification, analysing interdependencies and predicting failures
+      - can assist in automating repetitive and error-prone tasks such as clustering related components or optimising deployment strategies
+    - ML perform well in processing large and complex datasets and can uncover invisible patterns
+    $=>$ can support decision-making processes which would be otherwise difficult to achieve with traditional methods
 ]
 
 = Probleme / Fragestellungen
