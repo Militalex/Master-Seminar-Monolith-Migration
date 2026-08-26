@@ -6,9 +6,10 @@
   - `"microservice*" AND "identif*" AND ("interface" OR "api")`
 
 == Searched Journals
+- #link("https://www.sciencedirect.com/journal/information-and-software-technology")[Information and Software Technology]
 - #link("https://www.sciencedirect.com/journal/journal-of-systems-and-software")[Journal of Systems and Software]
 - #link("https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=32")[IEEE Transactions on Software Engineering]
-- #link("https://www.sciencedirect.com/journal/information-and-software-technology")[Information and Software Technology]
+- #link("https://onlinelibrary.wiley.com/journal/10990542")[Computer Applications in Engineering Education]
 
 == Searched Conferences
 - #link("https://link.springer.com/conference/sadasc")[International Conference on Smart Applications and Data Analysis (SADASC)]
