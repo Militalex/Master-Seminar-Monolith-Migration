@@ -3,7 +3,7 @@
 // Own Commands
 #let citeauthor(cite-label) = cite(cite-label, form: "prose")
 
-#let note(body) = text(fill: color.darken(blue, 60%))[*NOTES:*\ #body]
+#let note(body) = text(fill: color.rgb(0, 46, 87))[#v(1em)*NOTES:*\ #body]
 #let todo(body) = text(fill: purple)[*< TODO: #body >*]
 
 #let template-setup(
@@ -18,7 +18,7 @@
     ),
   ),
   doc-abstract: none,
-  bib-path: "../00 assets/refs.bib",
+  bib-path: "/00 assets/refs.bib",
   doc-index-terms: (),
   doc-figure-supplement: [Fig.],
   body
