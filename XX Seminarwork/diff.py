@@ -22,10 +22,10 @@ def find_typdiff(script_dir):
 
 
 def get_statusupdate_commits():
-    """Liest alle Commit-Hashes aus, deren Message mit 'STATUSUPDATE' beginnt."""
+    """Liest alle Commit-Hashes aus, deren Message mit '[REPORT-STATUSUPDATE]' beginnt."""
     try:
         res = subprocess.run(
-            ["git", "log", "--grep=^STATUSUPDATE", "--pretty=format:%H"],
+            ["git", "log", "--grep=^[REPORT-STATUSUPDATE]", "--pretty=format:%H"],
             capture_output=True,
             text=True,
             check=True,
