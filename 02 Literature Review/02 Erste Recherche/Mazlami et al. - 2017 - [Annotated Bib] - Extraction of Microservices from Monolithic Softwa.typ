@@ -6,6 +6,22 @@
   #text(size: 0.9em)[*Source:* G. Mazlami _et al._ "Extraction of Microservices from Monolithic Software Architectures," _2017 IEEE International Conference on Web Services (ICWS)_, 2017. [Online]. Available: #link("http://ieeexplore.ieee.org/document/8029803/")]
 ]
 
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Paper Information:* Key Paper]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Rating:* ⭐⭐⭐⭐]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Own Keywords:* Approaches, Clustering, Graph-based]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Reading Progress:* Second Pass]
+]
+
 == Introduction (What is the Paper about?)
 
 - addressing the decomposition problem of monolithical applications into
@@ -51,19 +67,19 @@
 
 + \[X\] Introduction
 + \[X\] Related Work
-+ [~] Formal Definition of the Extraction Models, Coupling Strategies
++ \[ ~\] Formal Definition of the Extraction Models, Coupling Strategies
   and Clustering Algorithm
-+ [~] Performance and Quality Evaluation
++ \[ ~\] Performance and Quality Evaluation
 + \[X\] Limitations and Future Work
-+ [~] Conclusion
++ \[ ~\] Conclusion
 
 == Own Comments
 
-- (+) Potential key paper
-- (+) First Paper applying software decomposition methods to
+- \(+) Potential key paper
+- \(+) First Paper applying software decomposition methods to
   microservices
-- (-) potentially outdated
-- (-) custom metrics
-- (-) missing reference of Komondoor et al.
+- \(-) potentially outdated
+- \(-) custom metrics
+- \(-) missing reference of Komondoor et al.
 ]
 ]

@@ -27,12 +27,12 @@ except OSError:
 TARGET_COLLECTION = "Master Seminar"
 USE_CUSTOM_THEME = True
 
-# Demo-/Template-Notizen ohne eigenen Inhalt filtern (True = aktivieren, False = deaktivieren)
+# Demo-/Template-Notizen ohne eigenen Inhalt filtern
 FILTER_DEMO_FILES = True
 
 # Steuerung, was exportiert werden soll:
-# Mögliche Werte: "Annotated Bibs", "Notes", "Publications", "PDFs"
-EXPORT_OPTIONS = ["Annotated Bibs", "PDFs"]
+# Mögliche Werte: "Annotated Bibs", "Notes", "Publications", "PDFs", "Publication Infos"
+EXPORT_OPTIONS = ["Annotated Bibs", "PDFs", "Publication Infos"]
 
 ZOTERO_DIR = Path.home() / "Zotero"
 EXPORT_DIR = Path(__file__).parent.resolve()
@@ -69,6 +69,56 @@ VSCODE_MARKDOWN_THEME = """
 )
 """
 
+# --- HELPER FUNKTIONEN ---
+
+def escape_typst_text(text: str) -> str:
+    """Escaped Sonderzeichen für Typst (z.B. #, /, _, *, [, ], @)."""
+    if not text:
+        return ""
+    return re.sub(r'([#/*_\[\]@])', r'\\\1', text)
+
+
+def clean_name(name: str) -> str:
+    """Bereinigt Dateinamen von unzulässigen Zeichen."""
+    if not name:
+        return ""
+    cleaned = re.sub(r'[\x00-\x1F\x7F/\\:*?"<>|$%]', "_", name).strip()
+    return re.sub(r"\s+", " ", cleaned)
+
+
+def prepare_path(path: Path) -> Path:
+    """Erstellt kompatible Windows Long Paths (hilft gegen 260-Zeichen-Limits)."""
+    abs_path = path.resolve()
+    if os.name == "nt":
+        str_path = str(abs_path)
+        if not str_path.startswith("\\\\?\\"):
+            if str_path.startswith("\\\\"):
+                return Path("\\\\?\\UNC\\" + str_path[2:])
+            return Path("\\\\?\\" + str_path)
+    return abs_path
+
+
+def build_filename(author, year, title, tag=None):
+    """Baut den standardisierten Dateinamen aus Autor, Jahr, Tag und Titel auf."""
+    if title and len(title) > 50:
+        title = title[:50].rstrip()
+
+    prefix = " - ".join(filter(None, [author, year]))
+    full_stem = " - ".join(filter(None, [prefix, tag, title]))
+    return clean_name(full_stem)
+
+
+def is_empty_demo_note(typ_text: str) -> bool:
+    """Filtert Vorlagen heraus, die außer Layout/Quellenangabe keinen Text enthalten."""
+    text = re.sub(r"^(?:==|=)\s+.*$", "", typ_text, flags=re.MULTILINE)
+    text = re.sub(
+        r"#block|\btext\b|\bsize\b|\bfill\b|\binset\b|\bradius\b|\bwidth\b|\bSource\b|\bPaper Information\b|\bRating\b|\bOwn Keywords\b|\bReading Progress\b",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+    return not bool(re.search(r"[a-zA-Z0-9]", text))
+
 
 def html_to_typst(html_str: str) -> str:
     """Konvertiert HTML-String mittels Pandoc direkt in sauber strukturierten Typst-Code."""
@@ -77,10 +127,7 @@ def html_to_typst(html_str: str) -> str:
 
     try:
         typst_output = pypandoc.convert_text(
-            html_str, 
-            to="typst", 
-            format="html",
-            extra_args=["--strip-comments"]
+            html_str, to="typst", format="html", extra_args=["--strip-comments"]
         )
     except Exception as e:
         print(f"Pandoc-Fehler: {e}")
@@ -92,13 +139,11 @@ def html_to_typst(html_str: str) -> str:
         text = re.sub(r"<[^>]+>", "", text)
         typst_output = text
 
-    # --- SÄUBERUNG DES TYPST-OUTPUTS ---
+    # Typst-spezifische Ausgaben bereinigen
     typst_output = re.sub(r"^\s*<[a-zA-Z0-9_-]+>\s*$", "", typst_output, flags=re.MULTILINE)
+    typst_output = typst_output.replace(r"\[ \]", "[ ]").replace(r"\[x\]", "[x]")
 
-    typst_output = typst_output.replace(r"\[ \]", "[ ]").replace(
-        r"\[x\]", "[x]"
-    ).replace(r"\[ ~\]", "[~]").replace(r"\(-)", "(-)").replace(r"\(+)", "(+)")
-
+    # Leerzeilen in Listen optimieren
     lines = typst_output.splitlines()
     cleaned_lines = []
     in_list = False
@@ -106,109 +151,159 @@ def html_to_typst(html_str: str) -> str:
 
     for i in range(n):
         line = lines[i]
-        nextLine = lines[i+1] if i + 1 < n else ""
-
-        stripped = line.strip()
-        is_empty = not stripped
-
+        nextLine = lines[i + 1] if i + 1 < n else ""
         is_list_item = re.match(r"^\s*([-+*]|\d+\.)\s+", line) is not None
 
         if is_list_item:
             in_list = True
             cleaned_lines.append(line)
-        elif is_empty:
+        elif not line.strip():
             if not in_list or nextLine.startswith("="):
                 cleaned_lines.append(line)
         else:
-            if stripped.startswith("="):
+            if line.strip().startswith("="):
                 in_list = False
             cleaned_lines.append(line)
 
-    typst_output = "\n".join(cleaned_lines)
-    typst_output = re.sub(r"\n{3,}", "\n\n", typst_output)
-
-    return typst_output.strip()
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(cleaned_lines)).strip()
 
 
-def prepare_path(path: Path) -> Path:
-    """Umgeht das Windows MAX_PATH Limit durch das Extended-Path Präfix."""
-    abs_path = path.resolve()
-    if os.name == "nt":
-        str_path = str(abs_path)
-        if not str_path.startswith("\\\\?\\"):
-            if str_path.startswith("\\\\"):
-                return Path("\\\\?\\UNC\\" + str_path[2:])
-            return Path("\\\\?\\" + str_path)
-    return abs_path
+# --- PARSING & METADATA ---
 
+def parse_ethereal_tags(tags, extra_text=""):
+    """Liest Ratings, Lesenfortschritte und Tags aus Zotero aus."""
+    ratings, reading_progress, paper_progress, tiered_tags = [], [], [], []
 
-def clean_name(name):
-    if not name:
-        return ""
-    cleaned = re.sub(r'[\x00-\x1F\x7F/\\:*?"<>|$%]', "_", name).strip()
-    return re.sub(r"\s+", " ", cleaned)
+    # A) Extra-Feld auf Ethereal Ratings prüfen
+    if extra_text:
+        for line in extra_text.splitlines():
+            line_str = line.strip()
+            if any(char in line_str for char in ["⭐", "*", "★"]):
+                ratings.append(escape_typst_text(line_str))
+            elif (m := re.match(r"^rating:\s*(\d+)", line_str, re.IGNORECASE)):
+                num = m.group(1)
+                ratings.append(escape_typst_text(f"{'⭐' * int(num)} ({num}/5)"))
 
-
-def clean_export_directory(export_dir, current_script):
-    protected = {
-        current_script.name.lower(),
-        ".git",
-        ".gitignore",
-        ".venv",
-        "__pycache__",
-        ".vscode",
-    }
-    for item in export_dir.iterdir():
-        if item.name.lower() in protected:
+    # B) Tags verarbeiten
+    for tag in tags:
+        tag_str = tag.strip()
+        if not tag_str:
             continue
-        try:
-            long_item = prepare_path(item)
-            if item.is_dir():
-                shutil.rmtree(long_item)
-            else:
-                long_item.unlink()
-        except Exception as e:
-            print(f"Warnung: '{item.name}' konnte nicht gelöscht werden ({e})")
 
-
-def compile_typst_file(typ_path: Path, pdf_path: Path):
-    try:
-        wrapper_path = None
-        if USE_CUSTOM_THEME:
-            wrapper_path = typ_path.parent / f"_temp_{typ_path.stem}.typ"
-            rel_include_path = typ_path.name
-            wrapper_content = f'{VSCODE_MARKDOWN_THEME}\n#include "{rel_include_path}"'
-            prepare_path(wrapper_path).write_text(wrapper_content, encoding="utf-8")
-            target_to_compile = wrapper_path
+        if any(char in tag_str for char in ["*", "⭐", "★"]):
+            ratings.append(escape_typst_text(tag_str))
+        elif (read_match := re.match(r"^#?read/(.+)$", tag_str, re.IGNORECASE)):
+            progress_parts = [escape_typst_text(p.strip()) for p in read_match.group(1).split("/") if p.strip()]
+            reading_progress.append(" > ".join(progress_parts))
+        elif (paper_match := re.match(r"^#?paper/(.+)$", tag_str, re.IGNORECASE)):
+            paper_parts = [escape_typst_text(p.strip()) for p in paper_match.group(1).split("/") if p.strip()]
+            paper_progress.append(" > ".join(paper_parts))
         else:
-            target_to_compile = typ_path
+            clean_tag = re.sub(r"^#+", "", tag_str).strip()
+            parts = [p.strip() for p in clean_tag.split("/") if p.strip()]
+            for depth, p in enumerate(parts):
+                esc_part = escape_typst_text(p)
+                if not any(text == esc_part for _, text in tiered_tags):
+                    tiered_tags.append((depth, esc_part))
 
-        res = subprocess.run(
-            ["typst", "compile", str(target_to_compile), str(pdf_path)],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+    tiered_tags.sort(key=lambda item: item[0])
+    category_tags = [text for _, text in tiered_tags]
 
-        if wrapper_path and prepare_path(wrapper_path).exists():
-            prepare_path(wrapper_path).unlink()
+    # Duplikate entfernen bei gleichbleibender Reihenfolge
+    return (
+        list(dict.fromkeys(ratings)),
+        list(dict.fromkeys(reading_progress)),
+        list(dict.fromkeys(paper_progress)),
+        category_tags,
+    )
 
-        if res.returncode != 0:
-            print(f"Typst-Kompilierfehler bei '{typ_path.name}': {res.stderr.strip()}")
-    except FileNotFoundError:
-        pass
-    except Exception as e:
-        print(f"Fehler beim Kompilieren von '{typ_path.name}': {e}")
 
+def build_metadata_blocks(ieee_citation, ratings, reading_progress, paper_progress, category_tags):
+    """Baut die strukturieren Typst-Metadatenblöcke auf."""
+    blocks = []
+    
+    def add_block(label, content):
+        if content:
+            blocks.append(
+                f'#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[\n'
+                f'  #text(size: 0.9em)[*{label}:* {content}]\n]'
+            )
+
+    add_block("Source", ieee_citation)
+    add_block("Paper Information", ", ".join(paper_progress))
+    add_block("Rating", ", ".join(ratings))
+    add_block("Own Keywords", ", ".join(category_tags))
+    add_block("Reading Progress", ", ".join(reading_progress))
+
+    return "\n\n".join(blocks)
+
+
+def format_ieee_citation(creators, title, venue, year, url):
+    """Erstellt eine formatierte Quellenangabe im IEEE-Stil."""
+    formatted_authors = []
+    for first, last in creators:
+        if not last:
+            continue
+        if first:
+            initials = ". ".join([p[0].upper() for p in re.split(r"[\s.-]+", first) if p]) + "."
+            formatted_authors.append(f"{initials} {last}")
+        else:
+            formatted_authors.append(last)
+
+    if len(formatted_authors) == 1:
+        authors_str = formatted_authors[0]
+    elif len(formatted_authors) == 2:
+        authors_str = f"{formatted_authors[0]} and {formatted_authors[1]}"
+    elif len(formatted_authors) > 2:
+        authors_str = f"{formatted_authors[0]} _et al._"
+    else:
+        authors_str = ""
+
+    parts = []
+    if authors_str:
+        parts.append(authors_str)
+    if title:
+        parts.append(f'"{title.strip().rstrip(".")},"')
+    if venue:
+        parts.append(f"_{venue.strip()}_,")
+    if year:
+        parts.append(f"{year}.")
+    if url:
+        parts.append(f'[Online]. Available: #link("{url.strip()}")')
+
+    return " ".join(parts)
+
+
+def generate_note_tag(typ_text, note_index, total_notes_in_category, is_annotated_bib):
+    """Generiert den Datei-Tag (z.B. [NOTE Headline] oder [Annotated Bib])."""
+    h2_match = re.search(r"^(?:==|=)\s+(.+)$", typ_text, re.MULTILINE)
+    raw_heading = h2_match.group(1).strip() if h2_match else ""
+    clean_h = clean_name(raw_heading)
+
+    tag_parts = []
+    if is_annotated_bib:
+        if len(clean_h) > 35:
+            clean_h = clean_h[:35].rstrip()
+        tag_parts.append(clean_h if clean_h else "Annotated Bib")
+    else:
+        tag_parts.append("NOTE")
+        if clean_h:
+            if len(clean_h) > 30:
+                clean_h = clean_h[:30].rstrip()
+            tag_parts.append(clean_h)
+
+    if total_notes_in_category > 1:
+        tag_parts.append(str(note_index))
+
+    return f"[{' '.join(tag_parts)}]"
+
+
+# --- ZOTERO METADATEN FETCHING ---
 
 def get_item_full_metadata(cursor, item_id):
+    """Holt alle relevanten Metadaten eines Eintrags aus der Zotero-Datenbank."""
     cursor.execute(
-        """
-        SELECT t.typeName
-        FROM items i
-        JOIN itemTypes t ON i.itemTypeID = t.itemTypeID
-        WHERE i.itemID = ?
-    """,
+        "SELECT t.typeName FROM items i JOIN itemTypes t ON i.itemTypeID = t.itemTypeID WHERE i.itemID = ?",
         (item_id,),
     )
     row_type = cursor.fetchone()
@@ -216,29 +311,17 @@ def get_item_full_metadata(cursor, item_id):
 
     cursor.execute(
         """
-        SELECT v.value 
-        FROM itemData d
-        JOIN fields f ON d.fieldID = f.fieldID
-        JOIN itemDataValues v ON d.valueID = v.valueID
-        WHERE d.itemID = ? AND f.fieldName = 'title'
-    """,
-        (item_id,),
-    )
-    row = cursor.fetchone()
-    title = row[0] if row else ""
-
-    cursor.execute(
-        """
         SELECT f.fieldName, v.value 
         FROM itemData d
         JOIN fields f ON d.fieldID = f.fieldID
         JOIN itemDataValues v ON d.valueID = v.valueID
-        WHERE d.itemID = ? AND f.fieldName IN ('publicationTitle', 'proceedingsTitle', 'bookTitle', 'publisher', 'university', 'date', 'url')
+        WHERE d.itemID = ?
     """,
         (item_id,),
     )
-    fields = {r[0]: r[1] for r in cursor.fetchall()}
+    fields = dict(cursor.fetchall())
 
+    title = fields.get("title", "")
     venue = (
         fields.get("publicationTitle")
         or fields.get("proceedingsTitle")
@@ -248,8 +331,6 @@ def get_item_full_metadata(cursor, item_id):
         or ""
     )
     date_val = fields.get("date", "")
-    url_val = fields.get("url", "")
-
     year_match = re.search(r"\b(19|20)\d{2}\b", date_val)
     year = year_match.group(0) if year_match else ""
 
@@ -275,120 +356,97 @@ def get_item_full_metadata(cursor, item_id):
     else:
         author_short = ""
 
-    return item_type, title, creators, venue, year, url_val, clean_name(author_short)
+    cursor.execute(
+        """
+        SELECT t.name
+        FROM itemTags it
+        JOIN tags t ON it.tagID = t.tagID
+        WHERE it.itemID = ?
+        ORDER BY t.name
+    """,
+        (item_id,),
+    )
+    tags = [r[0] for r in cursor.fetchall()]
+
+    return (
+        item_type,
+        title,
+        creators,
+        venue,
+        year,
+        fields.get("url", ""),
+        clean_name(author_short),
+        tags,
+        fields.get("extra", ""),
+    )
 
 
-def format_ieee_citation(creators, title, venue, year, url):
-    formatted_authors = []
-    for first, last in creators:
-        if not last:
-            continue
-        if first:
-            parts = re.split(r"[\s.-]+", first)
-            initials = ". ".join([p[0].upper() for p in parts if p]) + "."
-            formatted_authors.append(f"{initials} {last}")
+# --- TYPST COMPILATION & EXPORT ---
+
+def compile_typst_file(typ_path: Path, pdf_path: Path):
+    """Kompiliert eine Typst-Datei mit optionalem Custom-Theme als PDF."""
+    try:
+        wrapper_path = None
+        if USE_CUSTOM_THEME:
+            wrapper_path = typ_path.parent / f"_temp_{typ_path.stem}.typ"
+            wrapper_content = f'{VSCODE_MARKDOWN_THEME}\n#include "{typ_path.name}"'
+            prepare_path(wrapper_path).write_text(wrapper_content, encoding="utf-8")
+            target_to_compile = wrapper_path
         else:
-            formatted_authors.append(last)
+            target_to_compile = typ_path
 
-    if len(formatted_authors) == 1:
-        authors_str = formatted_authors[0]
-    elif len(formatted_authors) == 2:
-        authors_str = f"{formatted_authors[0]} and {formatted_authors[1]}"
-    elif len(formatted_authors) > 2:
-        authors_str = f"{formatted_authors[0]} _et al._"
-    else:
-        authors_str = ""
+        res = subprocess.run(
+            ["typst", "compile", str(target_to_compile), str(pdf_path)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
 
-    parts = []
-    if authors_str:
-        parts.append(authors_str)
-    if title:
-        clean_t = title.strip().rstrip(".")
-        parts.append(f'"{clean_t},"')
-    if venue:
-        parts.append(f"_{venue.strip()}_,")
-    if year:
-        parts.append(f"{year}.")
-    if url:
-        parts.append(f'[Online]. Available: #link("{url.strip()}")')
+        if wrapper_path and prepare_path(wrapper_path).exists():
+            prepare_path(wrapper_path).unlink()
 
-    return " ".join(parts)
+        if res.returncode != 0:
+            print(f"Typst-Kompilierfehler bei '{typ_path.name}': {res.stderr.strip()}")
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        print(f"Fehler beim Kompilieren von '{typ_path.name}': {e}")
 
 
-def generate_note_tag(typ_text, note_index, total_notes_in_category, is_annotated_bib):
-    h2_match = re.search(r"^(?:==|=)\s+(.+)$", typ_text, re.MULTILINE)
-    raw_heading = h2_match.group(1).strip() if h2_match else ""
-    clean_h = clean_name(raw_heading)
-
-    tag_parts = []
-    if is_annotated_bib:
-        if len(clean_h) > 35:
-            clean_h = clean_h[:35].rstrip()
-        tag_parts.append(clean_h if clean_h else "Annotated Bib")
-    else:
-        tag_parts.append("NOTE")
-        if clean_h:
-            if len(clean_h) > 30:
-                clean_h = clean_h[:30].rstrip()
-            tag_parts.append(clean_h)
-
-    if total_notes_in_category > 1:
-        tag_parts.append(str(note_index))
-
-    return f"[{' '.join(tag_parts)}]"
-
-
-def build_filename(author, year, title, tag=None):
-    if title and len(title) > 50:
-        title = title[:50].rstrip()
-
-    meta_parts = []
-    if author:
-        meta_parts.append(author)
-    if year:
-        meta_parts.append(year)
-
-    prefix = " - ".join(meta_parts)
-
-    parts = []
-    if prefix:
-        parts.append(prefix)
-    if tag:
-        parts.append(tag)
-    if title:
-        parts.append(title)
-
-    if not parts:
-        return ""
-
-    full_stem = " - ".join(parts)
-    return clean_name(full_stem)
-
-
-def is_empty_demo_note(typ_text: str) -> bool:
-    """Prüft, ob eine Notiz nur aus Standard-Überschriften und Typst-Layout besteht."""
-    # 1. Überschriften entfernen (z. B. == Annotated Bibliography)
-    text = re.sub(r"^(?:==|=)\s+.*$", "", typ_text, flags=re.MULTILINE)
-    
-    # 2. Typst-Syntax & Standard-Labels entfernen
-    text = re.sub(r"#block|\btext\b|\bsize\b|\bfill\b|\binset\b|\bradius\b|\bwidth\b|\bSource\b", "", text)
-    
-    # 3. Prüfen, ob noch alphanumerische Zeichen (A-Z, 0-9) übrig sind
-    has_content = bool(re.search(r"[a-zA-Z0-9]", text))
-    
-    return not has_content
+def clean_export_directory(export_dir, current_script):
+    """Löscht alte Exportdateien, ohne Entwicklungsordner/Skripte zu antasten."""
+    protected = {
+        current_script.name.lower(),
+        ".git",
+        ".gitignore",
+        ".venv",
+        "__pycache__",
+        ".vscode",
+    }
+    for item in export_dir.iterdir():
+        if item.name.lower() in protected:
+            continue
+        try:
+            long_item = prepare_path(item)
+            if item.is_dir():
+                shutil.rmtree(long_item)
+            else:
+                long_item.unlink()
+        except Exception as e:
+            print(f"Warnung: '{item.name}' konnte nicht gelöscht werden ({e})")
 
 
 def export_zotero():
+    """Hauptfunktion für den Exporter."""
     db_path = ZOTERO_DIR / "zotero.sqlite"
     if not db_path.exists():
         print(f"Fehler: zotero.sqlite unter {db_path} nicht gefunden!")
         return
 
     clean_export_directory(EXPORT_DIR, Path(__file__))
-
     has_typst = shutil.which("typst") is not None
 
+    # Zotero SQLite temporär kopieren, um Schreib-Sperren der Zotero-App zu umgehen
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_db = Path(tmpdir) / "zotero.sqlite"
         shutil.copy2(db_path, tmp_db)
@@ -397,24 +455,17 @@ def export_zotero():
         try:
             cursor = conn.cursor()
 
-            cursor.execute(
-                "SELECT collectionID, collectionName, parentCollectionID FROM collections"
-            )
-            all_colls = {
-                row[0]: {"name": clean_name(row[1]), "parent": row[2]}
-                for row in cursor.fetchall()
-            }
+            # Collections aufbauen
+            cursor.execute("SELECT collectionID, collectionName, parentCollectionID FROM collections")
+            all_colls = {row[0]: {"name": clean_name(row[1]), "parent": row[2]} for row in cursor.fetchall()}
 
-            target_coll_id = None
-            for cid, info in all_colls.items():
-                if info["name"].lower() == TARGET_COLLECTION.lower():
-                    target_coll_id = cid
-                    break
+            target_coll_id = next(
+                (cid for cid, info in all_colls.items() if info["name"].lower() == TARGET_COLLECTION.lower()),
+                None,
+            )
 
             if target_coll_id is None:
-                print(
-                    f"Fehler: Die Sammlung '{TARGET_COLLECTION}' wurde in Zotero nicht gefunden!"
-                )
+                print(f"Fehler: Die Sammlung '{TARGET_COLLECTION}' wurde in Zotero nicht gefunden!")
                 return
 
             def is_descendant_of_target(cid):
@@ -443,7 +494,7 @@ def export_zotero():
                 target_folder = EXPORT_DIR / get_relative_path(coll_id)
                 prepare_path(target_folder).mkdir(parents=True, exist_ok=True)
 
-                item_type, title, creators, venue, year, url, author_short = (
+                item_type, title, creators, venue, year, url, author_short, tags, extra_val = (
                     get_item_full_metadata(cursor, item_id)
                 )
 
@@ -477,64 +528,43 @@ def export_zotero():
                     attachments = cursor.fetchall()
 
                     for att_path, key in attachments:
-                        raw_filename = (
-                            att_path.replace("storage:", "") if att_path else ""
-                        )
+                        raw_filename = att_path.replace("storage:", "") if att_path else ""
                         storage_folder = ZOTERO_DIR / "storage" / key
 
-                        src_pdf = (
-                            storage_folder / raw_filename
-                            if raw_filename
-                            else None
-                        )
-                        if not (src_pdf and src_pdf.exists()):
-                            if storage_folder.exists():
-                                pdfs_in_dir = list(storage_folder.glob("*.pdf"))
-                                if pdfs_in_dir:
-                                    src_pdf = pdfs_in_dir[0]
+                        src_pdf = storage_folder / raw_filename if raw_filename else None
+                        if not (src_pdf and src_pdf.exists()) and storage_folder.exists():
+                            pdfs_in_dir = list(storage_folder.glob("*.pdf"))
+                            if pdfs_in_dir:
+                                src_pdf = pdfs_in_dir[0]
 
                         if src_pdf and src_pdf.exists():
-                            pdf_stem = build_filename(author_short, year, title)
-                            if not pdf_stem:
-                                pdf_stem = clean_name(src_pdf.stem[:50])
-
+                            pdf_stem = build_filename(author_short, year, title) or clean_name(src_pdf.stem[:50])
                             dst_pdf = target_folder / f"{pdf_stem}.pdf"
 
                             counter = 1
                             while prepare_path(dst_pdf).exists():
-                                dst_pdf = (
-                                    target_folder / f"{pdf_stem}_{counter}.pdf"
-                                )
+                                dst_pdf = target_folder / f"{pdf_stem}_{counter}.pdf"
                                 counter += 1
 
                             try:
-                                shutil.copy2(
-                                    prepare_path(src_pdf), prepare_path(dst_pdf)
-                                )
+                                shutil.copy2(prepare_path(src_pdf), prepare_path(dst_pdf))
                             except Exception as e:
-                                print(
-                                    f"Fehler beim Kopieren von PDF '{src_pdf.name}': {e}"
-                                )
+                                print(f"Fehler beim Kopieren von PDF '{src_pdf.name}': {e}")
 
-                # 2. Notizen auslesen, kategorisieren und filtern
+                # 2. Notizen auslesen & kategorisieren
                 cursor.execute(
-                    """
-                    SELECT note FROM itemNotes 
-                    WHERE parentItemID = ? OR itemID = ?
-                """,
+                    "SELECT note FROM itemNotes WHERE parentItemID = ? OR itemID = ?",
                     (item_id, item_id),
                 )
                 raw_notes = cursor.fetchall()
 
-                annotated_bibs = []
-                other_notes = []
+                annotated_bibs, other_notes = [], []
 
                 for n in raw_notes:
                     if not (n[0] and n[0].strip()):
                         continue
                     typ_text = html_to_typst(n[0])
 
-                    # Demo-Dateien filtern, sofern die Option eingeschaltet ist
                     if FILTER_DEMO_FILES and is_empty_demo_note(typ_text):
                         continue
 
@@ -546,38 +576,63 @@ def export_zotero():
                     else:
                         other_notes.append(typ_text)
 
+                # Metadaten aufbereiten
+                ieee_citation = format_ieee_citation(creators, title, venue, year, url)
+                ratings, reading_progress, paper_progress, category_tags = parse_ethereal_tags(tags, extra_val)
+                metadata_blocks_str = build_metadata_blocks(
+                    ieee_citation, ratings, reading_progress, paper_progress, category_tags
+                )
+                has_valid_metadata = bool(title.strip() or ieee_citation.strip())
+
+                # 3. Publication Info-Dateien ([INFO]) NUR erstellen, WENN KEINE Annotated Bib vorhanden ist
+                has_annotated_bibs = len(annotated_bibs) > 0 and "Annotated Bibs" in EXPORT_OPTIONS
+
+                if "Publication Infos" in EXPORT_OPTIONS and has_typst and has_valid_metadata and not has_annotated_bibs:
+                    info_content = f"== {title if title else 'Publication Metadata'}\n\n{metadata_blocks_str}"
+
+                    if not (FILTER_DEMO_FILES and is_empty_demo_note(info_content)):
+                        info_stem = build_filename(author_short, year, title, tag="[INFO]") or clean_name(f"[INFO] - {title[:50]}")
+                        info_typ_file = target_folder / f"{info_stem}.typ"
+                        info_pdf_file = target_folder / f"{info_stem}.pdf"
+
+                        try:
+                            prepare_path(info_typ_file).write_text(info_content, encoding="utf-8")
+                            compile_typst_file(prepare_path(info_typ_file), prepare_path(info_pdf_file))
+                            
+                            # Typst-Quelldatei löschen, um nur das PDF als Info-Blatt zu behalten
+                            if prepare_path(info_typ_file).exists():
+                                prepare_path(info_typ_file).unlink()
+                        except Exception as e:
+                            print(f"Fehler beim Generieren der Info-Datei für '{title}': {e}")
+
+                # 4. Notizen schreiben und kompilieren
                 notes_to_process = []
 
                 if "Annotated Bibs" in EXPORT_OPTIONS:
                     total_bibs = len(annotated_bibs)
                     for idx, typ_text in enumerate(annotated_bibs, 1):
-                        tag = generate_note_tag(
-                            typ_text, idx, total_bibs, is_annotated_bib=True
-                        )
-                        notes_to_process.append((typ_text, tag))
+                        tag = generate_note_tag(typ_text, idx, total_bibs, is_annotated_bib=True)
+                        notes_to_process.append((typ_text, tag, True))
 
                 if "Notes" in EXPORT_OPTIONS:
                     total_others = len(other_notes)
                     for idx, typ_text in enumerate(other_notes, 1):
-                        tag = generate_note_tag(
-                            typ_text, idx, total_others, is_annotated_bib=False
+                        tag = generate_note_tag(typ_text, idx, total_others, is_annotated_bib=False)
+                        notes_to_process.append((typ_text, tag, False))
+
+                for typ_text, tag, is_bib in notes_to_process:
+                    note_stem = build_filename(author_short, year, title, tag=tag) or clean_name(tag)
+
+                    # Bei Annotated Bibs die vollständigen Metadaten-Blöcke verwenden, sonst nur IEEE Source
+                    if is_bib:
+                        header_line = f"== {title if title else 'Annotated Bibliography'}\n\n{metadata_blocks_str}"
+                    else:
+                        ieee_block = (
+                            f'#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[\n  #text(size: 0.9em)[*Source:* {ieee_citation}]\n]'
+                            if ieee_citation
+                            else ""
                         )
-                        notes_to_process.append((typ_text, tag))
-
-                # 3. Notizen schreiben und kompilieren
-                for typ_text, tag in notes_to_process:
-                    note_stem = build_filename(
-                        author_short, year, title, tag=tag
-                    )
-                    if not note_stem:
-                        note_stem = clean_name(tag)
-
-                    ieee_citation = format_ieee_citation(
-                        creators, title, venue, year, url
-                    )
-                    ieee_block = f'#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[\n  #text(size: 0.9em)[*Source:* {ieee_citation}]\n]'
-
-                    header_line = f"== {title if title else 'Annotated Bibliography'}\n\n{ieee_block}"
+                        header_line = f"== {title if title else 'Note'}\n\n{ieee_block}"
 
                     if re.search(r"^(?:==|=)\s+", typ_text, re.MULTILINE):
                         typ_text = re.sub(
@@ -594,15 +649,11 @@ def export_zotero():
 
                     counter = 1
                     while prepare_path(note_typ_file).exists():
-                        note_typ_file = (
-                            target_folder / f"{note_stem}_{counter}.typ"
-                        )
+                        note_typ_file = target_folder / f"{note_stem}_{counter}.typ"
                         counter += 1
 
                     try:
-                        prepare_path(note_typ_file).write_text(
-                            typ_text, encoding="utf-8"
-                        )
+                        prepare_path(note_typ_file).write_text(typ_text, encoding="utf-8")
 
                         if has_typst:
                             note_pdf_file = note_typ_file.with_suffix(".pdf")
@@ -611,9 +662,7 @@ def export_zotero():
                                 prepare_path(note_pdf_file),
                             )
                     except Exception as e:
-                        print(
-                            f"Fehler beim Schreiben/Kompilieren der Notiz {note_typ_file}: {e}"
-                        )
+                        print(f"Fehler beim Schreiben/Kompilieren der Notiz {note_typ_file}: {e}")
 
         finally:
             conn.close()

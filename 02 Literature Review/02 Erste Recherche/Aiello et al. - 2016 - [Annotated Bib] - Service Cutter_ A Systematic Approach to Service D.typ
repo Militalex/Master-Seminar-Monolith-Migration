@@ -6,6 +6,18 @@
   #text(size: 0.9em)[*Source:* M. Aiello _et al._ "Service Cutter: A Systematic Approach to Service Decomposition," _Proceedings of the 5th European Conference on Service-Oriented and Cloud Computing (ESOCC 2016)_, 2016. [Online]. Available: #link("http://link.springer.com/10.1007/978-3-319-44482-6_12")]
 ]
 
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Rating:* ⭐⭐⭐⭐⭐]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Own Keywords:* Approaches, Background, Domain-Driven Design (DDD), Coupling Criteria]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Reading Progress:* First Pass]
+]
+
 == Introduction (What is the Paper about?)
 
 - defining #strong[Coupling Strategies in a catalog]
@@ -56,21 +68,21 @@
 + \[X\] Introduction
 + \[X\] Scopes the context and defines terminology
 + \[X\] Presentation of the Coupling Criteria Catalog
-+ [~] Definition of a novel service decomposition process and tool
++ \[ ~\] Definition of a novel service decomposition process and tool
   architecture
-+ [~] Presentation of an Implementation #emph[\(Service Cutter)] and
++ \[ ~\] Presentation of an Implementation #emph[\(Service Cutter)] and
   validation
   - includes two case studies and performance measurements
-+ [~] Discussion of Strengths and Weaknesses of Service Cutter
-+ [~] Conclusion and Future Work
++ \[ ~\] Discussion of Strengths and Weaknesses of Service Cutter
++ \[ ~\] Conclusion and Future Work
 
 == Own Comments
 
-- (+) Key paper
-- (+) Paper serves as foundation of the field of #emph[Service
+- \(+) Key paper
+- \(+) Paper serves as foundation of the field of #emph[Service
   Decomposition]
-- (-) Validation manly is based on peoples opinion #emph[\(Empirical)]
-- (-) Coupling Criterions could be slithly different today
+- \(-) Validation manly is based on peoples opinion #emph[\(Empirical)]
+- \(-) Coupling Criterions could be slithly different today
   #emph[\(Potentially outdated now)] including more or different
   criterions
   - Assume that they not change so fast, but this should be reevaluated

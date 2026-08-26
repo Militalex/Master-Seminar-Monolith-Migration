@@ -6,6 +6,22 @@
   #text(size: 0.9em)[*Source:* I. Trabelsi _et al._ "A Systematic Literature Review of Machine Learning Approaches for Migrating Monolithic Systems to Microservices," _IEEE Transactions on Software Engineering_, 2025. [Online]. Available: #link("https://ieeexplore.ieee.org/document/11145241/")]
 ]
 
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Paper Information:* Key Paper, SLR]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Rating:* ⭐⭐⭐⭐⭐]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Own Keywords:* Approaches, Machine Learning (ML)]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Reading Progress:* First Pass]
+]
+
 == Introduction (What is the Paper about?)
 
 - #strong[Research GAP:] No prior work has yet systematically
@@ -81,21 +97,21 @@
 + \[X\] Introduction
 + \[X\] Background and Related Work on monolithic to microservice
   migration
-+ [~] Description of the SLR Methodology and used analysis processes
-+ [~] Statistical Overview of the selected Literature
-+ [~] Current Phases of migration being currently automated using ML
-+ [~] Types of data collected and processes using ML
-+ [~] ML techniques applied in migration
-+ [~] How ML-based techniques are evaluated
-+ [~] Challenges and Limitations of applying ML
-+ [~] Observations and Recommendations
-+ [~] Limitations
++ \[ ~\] Description of the SLR Methodology and used analysis processes
++ \[ ~\] Statistical Overview of the selected Literature
++ \[ ~\] Current Phases of migration being currently automated using ML
++ \[ ~\] Types of data collected and processes using ML
++ \[ ~\] ML techniques applied in migration
++ \[ ~\] How ML-based techniques are evaluated
++ \[ ~\] Challenges and Limitations of applying ML
++ \[ ~\] Observations and Recommendations
++ \[ ~\] Limitations
 + \[X\] Conclusion
 
 == Own Comments
 
-- (+) Key Paper which might give an overview over the current field
-- (-) Introduction feels a bit repetitive. It could be shortened
-- (-) \[15\] citation is used twice for two different sources
+- \(+) Key Paper which might give an overview over the current field
+- \(-) Introduction feels a bit repetitive. It could be shortened
+- \(-) \[15\] citation is used twice for two different sources
 ]
 ]
