@@ -275,16 +275,18 @@ def format_ieee_citation(creators, title, venue, year, url):
 
 
 def generate_note_tag(typ_text, note_index, total_notes_in_category, is_annotated_bib):
-    """Generiert den Datei-Tag (z.B. [NOTE Headline] oder [Annotated Bib])."""
+    """Generiert den Datei-Tag (z.B. [NOTE Headline] oder [ANNOTATED BIB])."""
     h2_match = re.search(r"^(?:==|=)\s+(.+)$", typ_text, re.MULTILINE)
     raw_heading = h2_match.group(1).strip() if h2_match else ""
     clean_h = clean_name(raw_heading)
 
     tag_parts = []
     if is_annotated_bib:
-        if len(clean_h) > 35:
+        if not clean_h or clean_h.lower() == "annotated bib":
+            clean_h = "ANNOTATED BIB"
+        elif len(clean_h) > 35:
             clean_h = clean_h[:35].rstrip()
-        tag_parts.append(clean_h if clean_h else "Annotated Bib")
+        tag_parts.append(clean_h)
     else:
         tag_parts.append("NOTE")
         if clean_h:
@@ -513,7 +515,12 @@ def export_zotero():
                     not is_publication and "PDFs" in EXPORT_OPTIONS
                 )
 
-                # 1. PDFs kopieren
+                # --- 1. DATEIEN IN-MEMORY SAMMELN, UM LOGIK ZU PRÜFEN ---
+                staged_pdfs = []
+                staged_info_content = None
+                staged_notes = []
+
+                # Source PDFs suchen
                 if should_export_pdf:
                     cursor.execute(
                         """
@@ -538,20 +545,9 @@ def export_zotero():
                                 src_pdf = pdfs_in_dir[0]
 
                         if src_pdf and src_pdf.exists():
-                            pdf_stem = build_filename(author_short, year, title) or clean_name(src_pdf.stem[:50])
-                            dst_pdf = target_folder / f"{pdf_stem}.pdf"
+                            staged_pdfs.append(src_pdf)
 
-                            counter = 1
-                            while prepare_path(dst_pdf).exists():
-                                dst_pdf = target_folder / f"{pdf_stem}_{counter}.pdf"
-                                counter += 1
-
-                            try:
-                                shutil.copy2(prepare_path(src_pdf), prepare_path(dst_pdf))
-                            except Exception as e:
-                                print(f"Fehler beim Kopieren von PDF '{src_pdf.name}': {e}")
-
-                # 2. Notizen auslesen & kategorisieren
+                # Notizen auslesen & kategorisieren
                 cursor.execute(
                     "SELECT note FROM itemNotes WHERE parentItemID = ? OR itemID = ?",
                     (item_id, item_id),
@@ -584,46 +580,90 @@ def export_zotero():
                 )
                 has_valid_metadata = bool(title.strip() or ieee_citation.strip())
 
-                # 3. Publication Info-Dateien ([INFO]) NUR erstellen, WENN KEINE Annotated Bib vorhanden ist
+                # Publication Info-Dateien ([INFO])
                 has_annotated_bibs = len(annotated_bibs) > 0 and "Annotated Bibs" in EXPORT_OPTIONS
 
-                if "Publication Infos" in EXPORT_OPTIONS and has_typst and has_valid_metadata and not has_annotated_bibs:
+                if "Publication Infos" in EXPORT_OPTIONS and has_valid_metadata and not has_annotated_bibs:
                     info_content = f"== {title if title else 'Publication Metadata'}\n\n{metadata_blocks_str}"
-
                     if not (FILTER_DEMO_FILES and is_empty_demo_note(info_content)):
-                        info_stem = build_filename(author_short, year, title, tag="[INFO]") or clean_name(f"[INFO] - {title[:50]}")
-                        info_typ_file = target_folder / f"{info_stem}.typ"
-                        info_pdf_file = target_folder / f"{info_stem}.pdf"
+                        staged_info_content = info_content
 
-                        try:
-                            prepare_path(info_typ_file).write_text(info_content, encoding="utf-8")
-                            compile_typst_file(prepare_path(info_typ_file), prepare_path(info_pdf_file))
-                            
-                            # Typst-Quelldatei löschen, um nur das PDF als Info-Blatt zu behalten
-                            if prepare_path(info_typ_file).exists():
-                                prepare_path(info_typ_file).unlink()
-                        except Exception as e:
-                            print(f"Fehler beim Generieren der Info-Datei für '{title}': {e}")
-
-                # 4. Notizen schreiben und kompilieren
-                notes_to_process = []
-
+                # Notizen sammeln
                 if "Annotated Bibs" in EXPORT_OPTIONS:
                     total_bibs = len(annotated_bibs)
                     for idx, typ_text in enumerate(annotated_bibs, 1):
                         tag = generate_note_tag(typ_text, idx, total_bibs, is_annotated_bib=True)
-                        notes_to_process.append((typ_text, tag, True))
+                        staged_notes.append((typ_text, tag, True, idx, total_bibs))
 
                 if "Notes" in EXPORT_OPTIONS:
                     total_others = len(other_notes)
                     for idx, typ_text in enumerate(other_notes, 1):
                         tag = generate_note_tag(typ_text, idx, total_others, is_annotated_bib=False)
-                        notes_to_process.append((typ_text, tag, False))
+                        staged_notes.append((typ_text, tag, False, idx, total_others))
 
-                for typ_text, tag, is_bib in notes_to_process:
-                    note_stem = build_filename(author_short, year, title, tag=tag) or clean_name(tag)
+                # --- 2. UNTERORDNER-LOGIK ---
+                # Ein Unterordner wird erstellt, wenn überhaupt irgendwelche Notizen/Infos existieren
+                # oder wenn mehr als eine Quell-PDF vorliegt.
+                has_generated_files = len(staged_notes) > 0 or (staged_info_content is not None)
+                use_subfolder = has_generated_files or (len(staged_pdfs) > 1)
 
-                    # Bei Annotated Bibs die vollständigen Metadaten-Blöcke verwenden, sonst nur IEEE Source
+                base_paper_stem = build_filename(author_short, year, title) or clean_name(title[:50]) or "Paper"
+
+                if use_subfolder:
+                    item_folder = target_folder / base_paper_stem
+                    prepare_path(item_folder).mkdir(parents=True, exist_ok=True)
+                else:
+                    item_folder = target_folder
+
+                # --- 3. SPEICHERN & EXPORTIEREN ---
+
+                # A) PDFs kopieren
+                for pdf_idx, src_pdf in enumerate(staged_pdfs, 1):
+                    source_tag = "[SOURCE]" if len(staged_pdfs) == 1 else f"[SOURCE_{pdf_idx}]"
+                    
+                    if use_subfolder:
+                        pdf_stem = source_tag
+                    else:
+                        pdf_stem = build_filename(author_short, year, title, tag=source_tag) or clean_name(f"{source_tag} - {src_pdf.stem[:50]}")
+
+                    dst_pdf = item_folder / f"{pdf_stem}.pdf"
+                    counter = 1
+                    while prepare_path(dst_pdf).exists():
+                        dst_pdf = item_folder / f"{pdf_stem}_{counter}.pdf"
+                        counter += 1
+
+                    try:
+                        shutil.copy2(prepare_path(src_pdf), prepare_path(dst_pdf))
+                    except Exception as e:
+                        print(f"Fehler beim Kopieren von PDF '{src_pdf.name}': {e}")
+
+                # B) Info-Datei schreiben & kompilieren
+                if staged_info_content:
+                    if use_subfolder:
+                        info_stem = "[INFO]"
+                    else:
+                        info_stem = build_filename(author_short, year, title, tag="[INFO]") or clean_name(f"[INFO] - {title[:50]}")
+
+                    info_typ_file = item_folder / f"{info_stem}.typ"
+                    info_pdf_file = item_folder / f"{info_stem}.pdf"
+
+                    try:
+                        prepare_path(info_typ_file).write_text(staged_info_content, encoding="utf-8")
+                        if has_typst:
+                            compile_typst_file(prepare_path(info_typ_file), prepare_path(info_pdf_file))
+                    except Exception as e:
+                        print(f"Fehler beim Generieren der Info-Datei für '{title}': {e}")
+
+                # C) Notizen schreiben & kompilieren
+                for typ_text, tag, is_bib, note_idx, total_notes_in_cat in staged_notes:
+                    if use_subfolder:
+                        if is_bib:
+                            note_stem = "[ANNOTATED BIB]" if total_notes_in_cat == 1 else f"[ANNOTATED BIB {note_idx}]"
+                        else:
+                            note_stem = tag
+                    else:
+                        note_stem = build_filename(author_short, year, title, tag=tag) or clean_name(tag)
+
                     if is_bib:
                         header_line = f"== {title if title else 'Annotated Bibliography'}\n\n{metadata_blocks_str}"
                     else:
@@ -645,11 +685,10 @@ def export_zotero():
                     else:
                         typ_text = f"{header_line}\n\n{typ_text}"
 
-                    note_typ_file = target_folder / f"{note_stem}.typ"
-
+                    note_typ_file = item_folder / f"{note_stem}.typ"
                     counter = 1
                     while prepare_path(note_typ_file).exists():
-                        note_typ_file = target_folder / f"{note_stem}_{counter}.typ"
+                        note_typ_file = item_folder / f"{note_stem}_{counter}.typ"
                         counter += 1
 
                     try:
