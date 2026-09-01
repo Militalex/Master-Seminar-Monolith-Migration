@@ -11,9 +11,10 @@ In Software Engineering of business applications, the architecture and organizat
 As software become more and more complex these features are more and more less achieved due to the predominant implementation of _Monolithical Architectures_ @abgaz2023Decomposition.
 
 == Monolithical Architectures
-_Monolithtical Architectures_ decompose the software according horizontal and technical oriented layers, which is illustrated in @fig:monolith. Between these layers are often lots of dependencies resulting in a loss of flexibility whenever the software have to be adapted hindering _agile software development_ and _maintenance_. #todo[Quelle?]
+_Monolithtical Architectures_ decompose the software according horizontal and technical oriented layers, which is illustrated in @fig:monolith. Between these layers are often lots of dependencies resulting in a loss of flexibility whenever the software have to be adapted hindering _deployability_ and _maintenance_. @lewis2014Microservices
 
-Monoliths are traditionally built as a single unit which can only be deployed and scaled as whole. Therefore the deployability and scalability using a Monolithical Architecture is limited. @abgaz2023Decomposition
+Monoliths are traditionally built as a single unit which can only be deployed and scaled as single unit. Therefore the deployability and scalability using a Monolithical Architecture is limited. @abgaz2023Decomposition
+#todo[Letzten beiden Abschnitte anpassen]
 
 As the requirements towards the software are evolving there is need for software to be flexible, adaptable and deployable without influencing other parts of the software.
 
@@ -46,19 +47,16 @@ Microservices seek to be as independent as possible by trying to minimize depend
 
 #note[
   == Migration
-  - companies which have invented monolithical architectures may consider to migrate to a Microservice Architecture
-  - to perform that they have to decompose their monolithical application into smaller services
-  - decomposing a software into smaller parts have always been a challenge in software engineering and remains a complex and resource intensive task @gysel2016Service @trabelsi2025Systematic
+  - companies which have implemented monolithical architectures may consider to migrate to a Microservice Architecture
+    - preliminary studies have shown that companies only have the source code as most up-to-date source of information about their legacy software systems available which may hinder forward-engineering strategies @abdellatif2021taxonomy
+  - existing monolithical applications have to become decomposed into smaller, independent services
+  - decomposing software into smaller parts have always been a challenge in software engineering and remains a complex and resource intensive task @gysel2016Service @trabelsi2025Systematic
   - migration involves identifying service boundaries and packaging them into self-contained microservices with defined APIs @trabelsi2025Systematic
   - effective migration require robust strategies for deploying microservices and guaranteeing desired features like scalability, security and fault tolerance @trabelsi2025Systematic
-  - #citeauthor(<abdellatif2021taxonomy>) present a taxonomy of migration approaches #todo[Read @abdellatif2021taxonomy]:
-    - Heuristic-based methods
-    - Domain-Driven Design
-    - ... ?
 
   === Domain-Driven Design (DDD)
   - let migration engineer analyse and identify application's domain using techniques like _Domain-Driven Design (DDD)_ to obtain service boundaries @abgaz2023Decomposition @gysel2016Service
-  - DDD is a collection of abstract concepts helping to model complex and large software with respect to the domain @nockemann2025DomainDriven #todo[In Seminararbeit DDD genauer erklären und hier nur kurz]
+  - DDD is a collection of abstract concepts helping to model complex and large software with respect to the domain @nockemann2025DomainDriven #todo[In Seminararbeit DDD vielleicht genauer erklären und hier nur kurz]
 
   === Machine Learning (ML) @trabelsi2025Systematic
   - ML offer a promising avenue to tackle the manuel intervention and adaptability challenges

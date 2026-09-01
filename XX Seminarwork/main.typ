@@ -33,6 +33,11 @@
     caption: [Scaling and deploying of Monoliths and Microservices by #citeauthor(<lewis2014Microservices>)]
   ) <fig:monolith_and_microservices>
 
+  == Migration Strategies (according #citeauthor(<abdellatif2021taxonomy>))
+  The authors #citeauthor(<abdellatif2021taxonomy>) suggest three general strategies of migrating a legacy system into a SOA: _top-down-_, _bottom-up-_ and _hybrid strategies_
+
+  #include "../00 assets/mindmaps/Migration Strategies according Abdellatif.typ"
+
   === Domain-Driven Design (DDD)
   #todo[DDD Buch verwenden und referenzieren]
   - tactical design and strategiel design
