@@ -7,7 +7,7 @@
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Paper Information:* Key Paper, SLR]
+  #text(size: 0.9em)[*Paper Information:* Key Paper, Systematic Literature Review (SLR)]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
@@ -112,6 +112,10 @@
 
 - \(+) Key Paper which might give an overview over the current field
 - \(-) Introduction feels a bit repetitive. It could be shortened
-- \(-) \[15\] citation is used twice for two different sources
+- \(-) problems with citation numbering
+  - in #emph[Table of closely related work] citations might not be all
+    correct
+    - e.g. the year of \[19\] does not match
+  - citation \[15\] is used twice for two different sources
 ]
 ]

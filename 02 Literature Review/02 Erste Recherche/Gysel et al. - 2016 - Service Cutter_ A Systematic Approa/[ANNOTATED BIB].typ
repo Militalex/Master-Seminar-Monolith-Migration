@@ -3,7 +3,7 @@
 == Service Cutter: A Systematic Approach to Service Decomposition
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Source:* M. Aiello _et al._ "Service Cutter: A Systematic Approach to Service Decomposition," _Proceedings of the 5th European Conference on Service-Oriented and Cloud Computing (ESOCC 2016)_, 2016. [Online]. Available: #link("http://link.springer.com/10.1007/978-3-319-44482-6_12")]
+  #text(size: 0.9em)[*Source:* M. Gysel _et al._ "Service Cutter: A Systematic Approach to Service Decomposition," _Proceedings of the 5th European Conference on Service-Oriented and Cloud Computing (ESOCC 2016)_, 2016. [Online]. Available: #link("http://link.springer.com/10.1007/978-3-319-44482-6_12")]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
