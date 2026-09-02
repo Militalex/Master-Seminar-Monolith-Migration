@@ -7,11 +7,15 @@
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Paper Information:* Key Paper, SLR, Survey]
+  #text(size: 0.9em)[*Paper Information:* Key Paper, Survey, Systematic Literature Review (SLR)]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Own Keywords:* Background, Microservices, Migration, Monolith]
+  #text(size: 0.9em)[*Rating:* ⭐⭐⭐⭐⭐ (5\/5)]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Own Keywords:* Background, Microservices, Migration, Monolith, Monolith Decomposition]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
@@ -20,17 +24,17 @@
 
 == Introduction (What is the Paper about?)
 
-- #strong[Aim to give an overview about the field of #emph[Monolith
+- #strong[Aim: give an overview about the field of #emph[Monolith
   Decomposition]]
-  - examination of following aspects:
-    - contributions seeking to define migration road maps
-    - seeking to identify existing tooling
-    - works reporting on migration problems and challenges
-    - works outlining differing migration processes
-  - can assist practitioners seeking to understand the dimensions of
-    monolith decomposition and current capabilities
-  - findings valuable for researches looking to identify areas of
-    further extension
+  - includes different phases of monolith decomposition
+  - identifying research gaps
+  - outlining future directions
+- #strong[Comprehensive and interrelated picture of various
+  decomposition techniques, benchmarks and metrics]
+  - outlining differing migration processes
+  - identify existing tooling
+  - investigate contributions seeking to define migration road maps
+  - problems and challenges during migration
 
 == Methods
 
@@ -59,6 +63,10 @@
     - insufficient tool support, standardized metrics and datasets
   - absence of methods combining static, dynamic and evolutionary data
 - #strong[Identification of used metrics and datasets for Evaluation]
+- #strong[can assist practitioners seeking to understand the dimensions
+  of monolith decomposition] and current capabilities
+  - findings valuable for researches looking to identify areas of
+    further extension
 
 == Challenges / Future Work
 
@@ -67,7 +75,7 @@
 == Paper Outline and Read Progress
 
 + \[X\] Introduction
-+ \[ ~\] Background and Related Work
++ \[X\] Background and Related Work
 + \[ ~\] SLR Methodology
 + \[ ~\] Presentation of the #emph[M2MDF]
   - Detailed Results of the SLR
