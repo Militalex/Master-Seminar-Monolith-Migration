@@ -176,13 +176,17 @@ def parse_ethereal_tags(tags, extra_text=""):
 
     # A) Extra-Feld auf Ethereal Ratings prüfen
     if extra_text:
+        # Findet 'rate: X' oder 'rating: X' an beliebiger Stelle im gesamten Text
+        for m in re.finditer(r"\b(?:rate|rating):\s*(\d+)\b", extra_text, re.IGNORECASE):
+            num = int(m.group(1))
+            num_clamped = max(1, min(5, num))
+            ratings.append(escape_typst_text(f"{'⭐' * num_clamped} ({num_clamped}/5)"))
+
+        # Prüft auf vorgefertigte Sternen-Symbole zeilenweise
         for line in extra_text.splitlines():
             line_str = line.strip()
-            if any(char in line_str for char in ["⭐", "*", "★"]):
+            if any(char in line_str for char in ["⭐", "★"]):
                 ratings.append(escape_typst_text(line_str))
-            elif (m := re.match(r"^rating:\s*(\d+)", line_str, re.IGNORECASE)):
-                num = m.group(1)
-                ratings.append(escape_typst_text(f"{'⭐' * int(num)} ({num}/5)"))
 
     # B) Tags verarbeiten
     for tag in tags:
@@ -190,8 +194,16 @@ def parse_ethereal_tags(tags, extra_text=""):
         if not tag_str:
             continue
 
-        if any(char in tag_str for char in ["*", "⭐", "★"]):
+        if any(char in tag_str for char in ["⭐", "★"]):
             ratings.append(escape_typst_text(tag_str))
+        elif (tag_m := re.search(r"(?:rate|rating)[:/]\s*(\d+)", tag_str, re.IGNORECASE)):
+            num = int(tag_m.group(1))
+            num_clamped = max(1, min(5, num))
+            ratings.append(escape_typst_text(f"{'⭐' * num_clamped} ({num_clamped}/5)"))
+        elif (tag_m := re.match(r"^(?:#)?(\d+)\s*(?:stars?|sterne)$", tag_str, re.IGNORECASE)):
+            num = int(tag_m.group(1))
+            num_clamped = max(1, min(5, num))
+            ratings.append(escape_typst_text(f"{'⭐' * num_clamped} ({num_clamped}/5)"))
         elif (read_match := re.match(r"^#?read/(.+)$", tag_str, re.IGNORECASE)):
             progress_parts = [escape_typst_text(p.strip()) for p in read_match.group(1).split("/") if p.strip()]
             reading_progress.append(" > ".join(progress_parts))
@@ -336,17 +348,27 @@ def get_item_full_metadata(cursor, item_id):
     year_match = re.search(r"\b(19|20)\d{2}\b", date_val)
     year = year_match.group(0) if year_match else ""
 
+    # Zotero Ersteller zusammen mit ihrem Rolle-Typ abfragen
     cursor.execute(
         """
-        SELECT c.firstName, c.lastName
+        SELECT c.firstName, c.lastName, ct.creatorType
         FROM itemCreators ic
         JOIN creators c ON ic.creatorID = c.creatorID
+        JOIN creatorTypes ct ON ic.creatorTypeID = ct.creatorTypeID
         WHERE ic.itemID = ?
         ORDER BY ic.orderIndex
     """,
         (item_id,),
     )
-    creators = cursor.fetchall()
+    all_creators = cursor.fetchall()
+
+    # Nur primäre Autoren/Ersteller (z. B. 'author', 'inventor') herausfiltern
+    primary_types = {"author", "inventor", "programmer", "presenter", "artist", "director", "podcaster"}
+    primary_creators = [c for c in all_creators if c[2] in primary_types]
+
+    # Falls Autoren vorhanden sind, diese nutzen. Andernfalls Fallback auf alle Ersteller (z. B. Herausgeberbände)
+    selected_creators = primary_creators if primary_creators else all_creators
+    creators = [(c[0], c[1]) for c in selected_creators]
 
     last_names = [c[1] for c in creators if c[1]]
     if len(last_names) == 1:
@@ -602,8 +624,6 @@ def export_zotero():
                         staged_notes.append((typ_text, tag, False, idx, total_others))
 
                 # --- 2. UNTERORDNER-LOGIK ---
-                # Ein Unterordner wird erstellt, wenn überhaupt irgendwelche Notizen/Infos existieren
-                # oder wenn mehr als eine Quell-PDF vorliegt.
                 has_generated_files = len(staged_notes) > 0 or (staged_info_content is not None)
                 use_subfolder = has_generated_files or (len(staged_pdfs) > 1)
 
