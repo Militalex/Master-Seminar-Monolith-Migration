@@ -185,7 +185,7 @@ def parse_ethereal_tags(tags, extra_text=""):
         for m in re.finditer(r"\b(?:rate|rating):\s*(\d+)\b", extra_text, re.IGNORECASE):
             num = int(m.group(1))
             num_clamped = max(1, min(5, num))
-            ratings.append(escape_typst_text(f"{'⭐' * num_clamped} ({num_clamped}/5)"))
+            ratings.append(escape_typst_text(f"{'⭐' * num_clamped}"))
 
         for line in extra_text.splitlines():
             line_str = line.strip()
