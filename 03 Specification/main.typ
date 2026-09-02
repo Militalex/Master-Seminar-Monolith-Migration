@@ -26,7 +26,7 @@ As the requirements towards the software are evolving there is need for software
 == Microservice Architecture
 Due to the downsides of Monolithtical Architectures, researchers has reached out to other software paradigms @daoud2020Automatic.
 
-_Microservice Architectures_ seeks to overcome the shortcomings of monoliths and have therefore gained significant attraction @garriga2018Taxonomy. The core idea behind this novel kind of software organization is to decompose the software vertically along enterprise business capabilities as illustrated in @fig:microservices.
+_Microservice Architectures_ seeks to overcome the shortcomings of monoliths and have therefore gained significant attraction @garriga2018Taxonomy @abgaz2023Decomposition. The core idea behind this novel kind of software organization is to decompose the software vertically along enterprise business capabilities as illustrated in @fig:microservices.
 
 #figure(
   image("/00 assets/figures/Microservices.jpg", width: 80%),
@@ -43,19 +43,32 @@ Microservices are typically build in a way that they encapsulate one single busi
 + Business logic
 + Database technology
 
-Microservices seek to be as independent as possible by trying to minimize dependencies on other services. Therefore they can be maintained, adapted and deployed individually which satisfy more adequate companies desire for agile software development. #todo[Quelle?]
+#note[
+  Microservices seek to be as independent as possible by trying to minimize dependencies to other services. Therefore they can be maintained, adapted and deployed individually which satisfy more adequate companies desire for agile software development. #todo[Quelle?]
+  - microservice architectures are distributed and favour the decomposition of systems into various independent components which may invoked as required @abgaz2023Decomposition
+  - benefits: increased scalability and improved deployment frequency @abgaz2023Decomposition
+]
 
 #note[
   == Migration
   - companies which have implemented monolithical architectures may consider to migrate to a Microservice Architecture
     - preliminary studies have shown that companies only have the source code as most up-to-date source of information about their legacy software systems available which may hinder forward-engineering strategies @abdellatif2021taxonomy
-  - existing monolithical applications have to become decomposed into smaller, independent services
-  - decomposing software into smaller parts have always been a challenge in software engineering and remains a complex and resource intensive task @gysel2016Service @trabelsi2025Systematic
+  - for companies with existing monolith-based system it is a challenge to decompose their system into coherent microservice-based implementations @abgaz2023Decomposition
   - migration involves identifying service boundaries and packaging them into self-contained microservices with defined APIs @trabelsi2025Systematic
   - effective migration require robust strategies for deploying microservices and guaranteeing desired features like scalability, security and fault tolerance @trabelsi2025Systematic
 
+  === Migration Techniques
+  - decomposing software into smaller parts have always been a challenge in software engineering and remains a complex and resource intensive task @gysel2016Service @trabelsi2025Systematic
+  - decomposition sometimes focussed on supporting migration engineers in the microservice identification phase by for analyzing the applications domain @abgaz2023Decomposition
+  - other techniques may involve analyzing source code, execution traces and version related information @abgaz2023Decomposition
+  - existing published material tends to focus on addressing specific scenarios, domains or programming languages @abgaz2023Decomposition
+  - monolith decomposition remains at an early stage and remains a complicated and expensive task event though it has gained more attracrion @abgaz2023Decomposition
+    - lack of integrated, comprehensive data collection and analysis methods with respect to crucial monolith aspects
+    - lack of comparison between various decomposition methods
+    - insufficient tool support, standardized metrics and datasets
+
   === Domain-Driven Design (DDD)
-  - let migration engineer analyse and identify application's domain using techniques like _Domain-Driven Design (DDD)_ to obtain service boundaries @abgaz2023Decomposition @gysel2016Service
+  - let migration engineer analyse and identify application's domain using techniques like _Domain-Driven Design (DDD)_ to obtain service boundaries @gysel2016Service
   - DDD is a collection of abstract concepts helping to model complex and large software with respect to the domain @nockemann2025DomainDriven #todo[In Seminararbeit DDD vielleicht genauer erklären und hier nur kurz]
 
   === Machine Learning (ML) @trabelsi2025Systematic
