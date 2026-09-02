@@ -99,13 +99,20 @@ def prepare_path(path: Path) -> Path:
 
 
 def build_filename(author, year, title, tag=None):
-    """Baut den standardisierten Dateinamen aus Autor, Jahr, Tag und Titel auf."""
-    if title and len(title) > 50:
-        title = title[:50].rstrip()
+    """Baut den standardisierten Dateinamen/Ordnernamen auf und kürzt ihn zur Vermeidung zu langer Pfade."""
+    if author and len(author) > 25:
+        author = author[:25].rstrip()
+    if title and len(title) > 35:
+        title = title[:35].rstrip()
 
     prefix = " - ".join(filter(None, [author, year]))
     full_stem = " - ".join(filter(None, [prefix, tag, title]))
-    return clean_name(full_stem)
+    cleaned = clean_name(full_stem)
+    
+    # Hartes Oberlimit für den Namen-Stem (z. B. 65 Zeichen), um Git- und Pfad-Fehler zu vermeiden
+    if len(cleaned) > 65:
+        cleaned = cleaned[:65].rstrip()
+    return cleaned
 
 
 def is_empty_demo_note(typ_text: str) -> bool:
@@ -174,21 +181,17 @@ def parse_ethereal_tags(tags, extra_text=""):
     """Liest Ratings, Lesenfortschritte und Tags aus Zotero aus."""
     ratings, reading_progress, paper_progress, tiered_tags = [], [], [], []
 
-    # A) Extra-Feld auf Ethereal Ratings prüfen
     if extra_text:
-        # Findet 'rate: X' oder 'rating: X' an beliebiger Stelle im gesamten Text
         for m in re.finditer(r"\b(?:rate|rating):\s*(\d+)\b", extra_text, re.IGNORECASE):
             num = int(m.group(1))
             num_clamped = max(1, min(5, num))
             ratings.append(escape_typst_text(f"{'⭐' * num_clamped} ({num_clamped}/5)"))
 
-        # Prüft auf vorgefertigte Sternen-Symbole zeilenweise
         for line in extra_text.splitlines():
             line_str = line.strip()
             if any(char in line_str for char in ["⭐", "★"]):
                 ratings.append(escape_typst_text(line_str))
 
-    # B) Tags verarbeiten
     for tag in tags:
         tag_str = tag.strip()
         if not tag_str:
@@ -221,7 +224,6 @@ def parse_ethereal_tags(tags, extra_text=""):
     tiered_tags.sort(key=lambda item: item[0])
     category_tags = [text for _, text in tiered_tags]
 
-    # Duplikate entfernen bei gleichbleibender Reihenfolge
     return (
         list(dict.fromkeys(ratings)),
         list(dict.fromkeys(reading_progress)),
@@ -296,14 +298,14 @@ def generate_note_tag(typ_text, note_index, total_notes_in_category, is_annotate
     if is_annotated_bib:
         if not clean_h or clean_h.lower() == "annotated bib":
             clean_h = "ANNOTATED BIB"
-        elif len(clean_h) > 35:
-            clean_h = clean_h[:35].rstrip()
+        elif len(clean_h) > 25:
+            clean_h = clean_h[:25].rstrip()
         tag_parts.append(clean_h)
     else:
         tag_parts.append("NOTE")
         if clean_h:
-            if len(clean_h) > 30:
-                clean_h = clean_h[:30].rstrip()
+            if len(clean_h) > 20:
+                clean_h = clean_h[:20].rstrip()
             tag_parts.append(clean_h)
 
     if total_notes_in_category > 1:
@@ -348,7 +350,6 @@ def get_item_full_metadata(cursor, item_id):
     year_match = re.search(r"\b(19|20)\d{2}\b", date_val)
     year = year_match.group(0) if year_match else ""
 
-    # Zotero Ersteller zusammen mit ihrem Rolle-Typ abfragen
     cursor.execute(
         """
         SELECT c.firstName, c.lastName, ct.creatorType
@@ -362,11 +363,9 @@ def get_item_full_metadata(cursor, item_id):
     )
     all_creators = cursor.fetchall()
 
-    # Nur primäre Autoren/Ersteller (z. B. 'author', 'inventor') herausfiltern
     primary_types = {"author", "inventor", "programmer", "presenter", "artist", "director", "podcaster"}
     primary_creators = [c for c in all_creators if c[2] in primary_types]
 
-    # Falls Autoren vorhanden sind, diese nutzen. Andernfalls Fallback auf alle Ersteller (z. B. Herausgeberbände)
     selected_creators = primary_creators if primary_creators else all_creators
     creators = [(c[0], c[1]) for c in selected_creators]
 
@@ -470,7 +469,6 @@ def export_zotero():
     clean_export_directory(EXPORT_DIR, Path(__file__))
     has_typst = shutil.which("typst") is not None
 
-    # Zotero SQLite temporär kopieren, um Schreib-Sperren der Zotero-App zu umgehen
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_db = Path(tmpdir) / "zotero.sqlite"
         shutil.copy2(db_path, tmp_db)
@@ -479,7 +477,6 @@ def export_zotero():
         try:
             cursor = conn.cursor()
 
-            # Collections aufbauen
             cursor.execute("SELECT collectionID, collectionName, parentCollectionID FROM collections")
             all_colls = {row[0]: {"name": clean_name(row[1]), "parent": row[2]} for row in cursor.fetchall()}
 
@@ -537,12 +534,10 @@ def export_zotero():
                     not is_publication and "PDFs" in EXPORT_OPTIONS
                 )
 
-                # --- 1. DATEIEN IN-MEMORY SAMMELN, UM LOGIK ZU PRÜFEN ---
                 staged_pdfs = []
                 staged_info_content = None
                 staged_notes = []
 
-                # Source PDFs suchen
                 if should_export_pdf:
                     cursor.execute(
                         """
@@ -569,7 +564,6 @@ def export_zotero():
                         if src_pdf and src_pdf.exists():
                             staged_pdfs.append(src_pdf)
 
-                # Notizen auslesen & kategorisieren
                 cursor.execute(
                     "SELECT note FROM itemNotes WHERE parentItemID = ? OR itemID = ?",
                     (item_id, item_id),
@@ -594,7 +588,6 @@ def export_zotero():
                     else:
                         other_notes.append(typ_text)
 
-                # Metadaten aufbereiten
                 ieee_citation = format_ieee_citation(creators, title, venue, year, url)
                 ratings, reading_progress, paper_progress, category_tags = parse_ethereal_tags(tags, extra_val)
                 metadata_blocks_str = build_metadata_blocks(
@@ -602,7 +595,6 @@ def export_zotero():
                 )
                 has_valid_metadata = bool(title.strip() or ieee_citation.strip())
 
-                # Publication Info-Dateien ([INFO])
                 has_annotated_bibs = len(annotated_bibs) > 0 and "Annotated Bibs" in EXPORT_OPTIONS
 
                 if "Publication Infos" in EXPORT_OPTIONS and has_valid_metadata and not has_annotated_bibs:
@@ -610,7 +602,6 @@ def export_zotero():
                     if not (FILTER_DEMO_FILES and is_empty_demo_note(info_content)):
                         staged_info_content = info_content
 
-                # Notizen sammeln
                 if "Annotated Bibs" in EXPORT_OPTIONS:
                     total_bibs = len(annotated_bibs)
                     for idx, typ_text in enumerate(annotated_bibs, 1):
@@ -623,11 +614,10 @@ def export_zotero():
                         tag = generate_note_tag(typ_text, idx, total_others, is_annotated_bib=False)
                         staged_notes.append((typ_text, tag, False, idx, total_others))
 
-                # --- 2. UNTERORDNER-LOGIK ---
                 has_generated_files = len(staged_notes) > 0 or (staged_info_content is not None)
                 use_subfolder = has_generated_files or (len(staged_pdfs) > 1)
 
-                base_paper_stem = build_filename(author_short, year, title) or clean_name(title[:50]) or "Paper"
+                base_paper_stem = build_filename(author_short, year, title) or clean_name(title[:35]) or "Paper"
 
                 if use_subfolder:
                     item_folder = target_folder / base_paper_stem
@@ -635,16 +625,13 @@ def export_zotero():
                 else:
                     item_folder = target_folder
 
-                # --- 3. SPEICHERN & EXPORTIEREN ---
-
-                # A) PDFs kopieren
                 for pdf_idx, src_pdf in enumerate(staged_pdfs, 1):
                     source_tag = "[SOURCE]" if len(staged_pdfs) == 1 else f"[SOURCE_{pdf_idx}]"
                     
                     if use_subfolder:
                         pdf_stem = source_tag
                     else:
-                        pdf_stem = build_filename(author_short, year, title, tag=source_tag) or clean_name(f"{source_tag} - {src_pdf.stem[:50]}")
+                        pdf_stem = build_filename(author_short, year, title, tag=source_tag) or clean_name(f"{source_tag} - {src_pdf.stem[:30]}")
 
                     dst_pdf = item_folder / f"{pdf_stem}.pdf"
                     counter = 1
@@ -657,12 +644,11 @@ def export_zotero():
                     except Exception as e:
                         print(f"Fehler beim Kopieren von PDF '{src_pdf.name}': {e}")
 
-                # B) Info-Datei schreiben & kompilieren
                 if staged_info_content:
                     if use_subfolder:
                         info_stem = "[INFO]"
                     else:
-                        info_stem = build_filename(author_short, year, title, tag="[INFO]") or clean_name(f"[INFO] - {title[:50]}")
+                        info_stem = build_filename(author_short, year, title, tag="[INFO]") or clean_name(f"[INFO] - {title[:30]}")
 
                     info_typ_file = item_folder / f"{info_stem}.typ"
                     info_pdf_file = item_folder / f"{info_stem}.pdf"
@@ -674,7 +660,6 @@ def export_zotero():
                     except Exception as e:
                         print(f"Fehler beim Generieren der Info-Datei für '{title}': {e}")
 
-                # C) Notizen schreiben & kompilieren
                 for typ_text, tag, is_bib, note_idx, total_notes_in_cat in staged_notes:
                     if use_subfolder:
                         if is_bib:
