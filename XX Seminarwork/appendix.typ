@@ -22,5 +22,7 @@
 - #link("https://link.springer.com/conference/icwe")[International Conference on Web Engineering (ICWE)]
 - #link("https://dl.acm.org/conference/ease")[International Conference on Evaluation and Assessment in Software Engineering (EASE)]
 - #link("https://ieeexplore.ieee.org/servlet/opac?punumber=11641055")[IEEE International Conference on Software Architecture Workshops (ICSAW) renamed since 2019 to IEEE International Conference on Software Architecture Companion (ICSA-C)]
+- #link("https://ieeexplore.ieee.org/servlet/opac?punumber=11511458")[Open Conference of Electrical, Electronic and Information Sciences (eStream)]
+- #link("https://link.springer.com/conference/itng")[International Conference on Information Technology-New Generations (ITNG)]
 
 ]
