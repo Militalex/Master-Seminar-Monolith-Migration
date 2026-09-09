@@ -90,6 +90,17 @@
 
 = Results
 
+#note[
+  Present the Results of your Literature Review
+  == Stats over the selected studies
+  === Temporal distribution of the studies
+  - Provide a stats about paper per year
+
+  === Publication venue
+  - Which are the (Main-) Conferences, Journals usw...?
+  - Which are the search platforms?
+]
+
 = Discussion
 
 = Conclusion
