@@ -52,10 +52,17 @@ Microservices are typically build in a way that they encapsulate one single busi
 #note[
   == Migration
   - companies which have implemented monolithical architectures may consider to migrate to a Microservice Architecture
-    - preliminary studies have shown that companies only have the source code as most up-to-date source of information about their legacy software systems available which may hinder forward-engineering strategies @abdellatif2021taxonomy
   - for companies with existing monolith-based system it is a challenge to decompose their system into coherent microservice-based implementations @abgaz2023Decomposition
+    - may require existing application experts to devote a considerable volume of time @abgaz2023Decomposition
   - migration involves identifying service boundaries and packaging them into self-contained microservices with defined APIs @trabelsi2025Systematic
   - effective migration require robust strategies for deploying microservices and guaranteeing desired features like scalability, security and fault tolerance @trabelsi2025Systematic
+  - the authors #citeauthor(<abgaz2023Decomposition>) presented as a result of their research question to identify the primary phases of monolith-to-microservices decomposition the following phases:
+    + *Input Collection:* Acquire data that describes the essential characteristics of the monolith application e.g. domain models, codebases, log files or code versions.
+    + *Monolith Analysis:* Focus on filtering and transforming the collected data into a representation being suitable for subsequent phases. It may include multiple stages of analysis including domain analysis and static analysis of code to extract structural relationships. Dynamic Analysis and Version Analysis focus on enriching the relationships with frequencies and associations.
+    + *Microservice Identification:* Uses heuristics to guide the microservice identification process by partitioning the monolith into microservice candidates. Often clustering algorithms are widely used to extract microservices. They represent the monolith as a graph or matrix and treat the identification problem as a clustering problem.
+    + *Microservice Optimisation:* This phase may not be implemented, but in case this phase is executed this approach first generate large pools of possible microservice partitions and seeks to select the optimal partition.
+    + *Microservice Evaluation:*
+    + *Microservice Deployment:*
 
   === Migration Techniques
   - decomposing software into smaller parts have always been a challenge in software engineering and remains a complex and resource intensive task @gysel2016Service @trabelsi2025Systematic

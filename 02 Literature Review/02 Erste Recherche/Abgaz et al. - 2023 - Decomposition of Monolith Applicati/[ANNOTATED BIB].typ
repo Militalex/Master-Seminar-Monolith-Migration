@@ -79,7 +79,7 @@
 + \[X\] Introduction
 + \[X\] Background and Related Work
 + \[X\] SLR Methodology
-+ \[ ~\] Presentation of the #emph[M2MDF]
++ \[X\] Presentation of the #emph[M2MDF]
   - Detailed Results of the SLR
 + \[ ~\] Existing Gaps in the field
 + \[ ~\] Threats to validity

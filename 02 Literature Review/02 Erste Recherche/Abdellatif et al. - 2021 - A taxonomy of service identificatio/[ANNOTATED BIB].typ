@@ -104,6 +104,7 @@
 == Own Comments
 
 - \(+) Key Paper
+- \(-) No special focus on microservices
 - \(-) Potential subjective because the authors mentioned they build
   their SLR based on their own experience
 ]
