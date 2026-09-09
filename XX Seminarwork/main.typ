@@ -48,6 +48,45 @@
 = Related Work
 
 = Methods
+#todo[Mehr in SLR-Methodik einlesen]
+
+#note[
+  == Planning Phase
+  - Identify the need for a review and the development of a review protocol
+    - leading to the development of research questions
+
+  === Identify the Need for an SLR
+  - Explain why your SLR is necessary?
+  - Which gap does it close?
+  - Which other Literature does exist (only coarse, in a nutshell, not detailed)?
+  - Why would be an SLR beneficial for your area?
+
+  === Specifying the Research questions
+  - What are your research questions?
+
+  === Defining and Evaluating the Review Protocol
+  - Where and who has performed the SLR? Which university?
+    - Who lead the SLR, who wrote the protocol and who performed the Evaluations?
+  - What are your IC and ECs?
+
+  == Review Phase
+
+  === Selection of Primary Studies
+  - Talk about your identified Keywords.
+    - What were your initial keywords? What synonyms did you found?
+  - Which Search Strings did you used?
+  - Explain how you selected the studies. Which inner phases and refinements the studies went through?
+  - What happened during the semester? Which meetings, how often you have meet with the supervisor?
+  - Explain _Snowballing_. What iterations did you do applying snowballing?
+  - How many Paper are included thank to snowballing
+  - Provide a figure showing the progress the paper went through and show how many are discarded in each step.
+  - Provide a table with all selected studies, including title, number, Type, Year and so on...
+
+  === Analysis of the Data
+  - Explain how you extracted the Data. Which Tools did you use?
+  - What Data did you extract?
+  - Which data was obvious and inviolable?
+]
 
 = Results
 

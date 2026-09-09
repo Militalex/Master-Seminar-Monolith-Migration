@@ -26,13 +26,14 @@
 
 - #strong[Aim: give an overview about the field of #emph[Monolith
   Decomposition]]
-  - includes different phases of monolith decomposition
+  - includes different, primary phases of monolith decomposition
   - identifying research gaps
   - outlining future directions
 - #strong[Comprehensive and interrelated picture of various
   decomposition techniques, benchmarks and metrics]
   - outlining differing migration processes
-  - identify existing tooling
+  - identify existing tooling and methods
+  - identify current metrics, datasets and benchmarks
   - investigate contributions seeking to define migration road maps
   - problems and challenges during migration
 
@@ -53,6 +54,7 @@
   Framework (M2MDF)]] #emph[] which identifies the mayor phases and key
   elements of decomposition
   - provides a comprehensive map for researchers and practitioners
+  -
 - #strong[Detailed Analysis of existing Decomposition approaches, tools
   and methods]
   - monolith decomposition remains at an early stage and remains a
@@ -76,7 +78,7 @@
 
 + \[X\] Introduction
 + \[X\] Background and Related Work
-+ \[ ~\] SLR Methodology
++ \[X\] SLR Methodology
 + \[ ~\] Presentation of the #emph[M2MDF]
   - Detailed Results of the SLR
 + \[ ~\] Existing Gaps in the field
