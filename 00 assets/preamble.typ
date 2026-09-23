@@ -21,6 +21,7 @@
   bib-path: "/00 assets/refs.bib",
   doc-index-terms: (),
   doc-figure-supplement: [Fig.],
+  bib-style: "ieee",
   body
 ) = {
   // Verringert den vertikalen Abstand für alle Block-Zitate
@@ -35,7 +36,7 @@
     authors: doc-authors,
     index-terms: doc-index-terms,
     abstract: doc-abstract,
-    bibliography: bibliography(bib-path, style: "ieee"),
+    bibliography: bibliography(bib-path, style: bib-style),
     figure-supplement: doc-figure-supplement,
   )
 
