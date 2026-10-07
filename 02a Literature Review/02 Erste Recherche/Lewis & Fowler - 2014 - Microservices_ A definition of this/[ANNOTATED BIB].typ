@@ -28,8 +28,7 @@
   Microservices
 - The authors seek to describe what they have seen is typical for
   microservices
-  - they compare microservices to the old fashioned monolith and point
-    out different key features and ways of thinking
+  - they explain the major ideas and principles of microservices
 
 == Methods
 
@@ -49,7 +48,7 @@
     remote procedure call.“]
     - are independently deployable - libraries not
   - #strong[Microservices:] #emph[“In short, the microservice
-    architectural style 1 is an approach to developing a single
+    architectural style is an approach to developing a single
     application as a suite of small services, each running in its own
     process and communicating with lightweight mechanisms, often an HTTP
     resource API. These services are built around business capabilities
@@ -102,6 +101,27 @@
       is then closed
     - The Project notion brings developers more into the contact how
       their software behaves in the wild
+- #strong[Deployability:]
+  - #strong[Monoliths are built as one single deployable unit]
+    - all logic for handling a request runs just in a single process
+    - any (even small) changes involve building and deploying a new
+      version of the entire application
+    - people are facing frustrations with monoliths as applications are
+      more deployed to the cloud
+  - Microservices are individually deployable
+    - Microservice adds an opportunity for more granular release
+      planning
+    - Can speed up release process
+- #strong[Monoliths are horizontally scalable] by deploying multiple
+  instances of the monolith itself rather
+  - scaling of single parts of the monolith is not possible
+  -
+- #strong[Monoliths struggle over time to maintain a good modular
+  structure]
+  - using just the provided features of the used programming language to
+    divide and structure the application
+  - hard to keep changes being only limited to one module/place in code
+    - often affects many places in the code
 - #strong[Communication Systems:]
   - Products may put stress in a significant smart communication
     mechanism itself defining complex algorithms for message routing,
@@ -129,27 +149,58 @@
     rules written on paper
     - #emph[Governance of Code] instead of #emph[Governance of Paper]
 - #strong[Data Management:]
-  -
-- #strong[Deployability:]
-  - #strong[Monoliths are built as one single deployable unit]
-    - all logic for handling a request runs just in a single process
-    - any (even small) changes involve building and deploying a new
-      version of the server-side application
-    - people are facing frustrations with monoliths as applications are
-      more deployed to the cloud
-- #strong[Monoliths are horizontally scalable] by deploying multiple
-  instances of the monolith itself rather
-  - scaling of single parts of the monolith is not possible
-  -
-- #strong[Monoliths struggle over time to maintain a good modular
-  structure]
-  - using just the provided features of the used programming language to
-    divide and structure the application
-  - hard to keep changes being only limited to one module/place in code
-    - often affects many places in the code
--
+  - Problem that domain model might differ between systems or even
+    within a system
+    - same entity can be viewed from different perspectives
+  - #emph[Domain-Driven Design (DDD)] can be used to cleanly divide a
+    complex domain set up into multiple bounded contexts
+    - it can maps and define the relationships between DDD as well
+    - natural correlation between bounded contexts and service
+      decomposition
+  - Monolithic systems prefer a single database for persistent data even
+    enterprises may prefer one database across a range of applications
+  - Microservice prefer letting each service manage it's own database or
+    a subset of tables which only belong to one service
+    - called #emph[Polyglot Persistence]
+- #strong[Design for failure:]
+  - A consequence of a microservice architecture is that applications
+    need to be able to handle and tolerate whenever a service fails or
+    is crashed
+    - introduce additional complexity -\-\> disadvantage
+  - Microservice put lots of emphasis on real-time monitoring
+- #strong[Using microservice choreographie and event collaboration can
+  lead to emergent behavior]
 
 == Challenges / Future Work
+
+- #strong[Microservices Architectural style is an important idea]
+  - many organizations are moving towards it including Netflix, Amazon
+    and much more
+- #strong[The authors aren't sure that Microservices are THE future of
+  software architectures]
+  - their experiences are so far positive
+  - not enough time has passed #emph[\(it was in 2014)] to make a full
+    judgement
+  - consequences of such architectural decisions are visible several
+    years later after you made them
+  - can't assess how microservice architectures mature
+- #strong[Microservices making it more difficult to move code across
+  service boundaries]
+  - important to get boundaries right
+  - involves coordination when interfaces are changing, layers of
+    backwards compatibility and testing is made more complicated
+- #strong[Components should compose cleanly]
+  - when for every feature a own component is created there is a mess of
+    connection logic
+    - might miss that when thinking from the perspective of simple,
+      small components
+- #strong[Teams should be adequately skillful]
+  - a poor team will always create a poor system
+  - microservices aren't helping in this aspects
+    - they are making the system not easier
+- #strong[It is recommended to build a microservices from the beginning
+  not to start with monolith when possible]
+  - a good in-process interface is usually not a good service interface
 
 == Limitations
 
@@ -167,12 +218,21 @@
 + \[X\] Smart endpoints and dumb pipes
 + \[X\] Decentralized Governance
 + \[X\] Decentralized Data Management
++ \[X\] Infrastructure Automation
++ \[X\] Design for failure
++ \[X\] Evolutionary Design
++ \[X\] Are Microservices the Future?
 
 == Own Comments
 
 - \(+) provides several basic ideas and definitions
 - \(+) key article of microservices
-- \(-) old
 - \(-) statements are based on observations
+- \(-) Not peer-reviewed and no systematic evidence.
+- \(-) Potentially outdated; published in 2014.
+- \(-) No specific focus on legacy modernization, service
+  identification, or ML-based migration.
+- \(-) Examples are strongly shaped by large tech companies;
+  generalizability is limited.
 ]
 ]
