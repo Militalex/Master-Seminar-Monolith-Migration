@@ -1,7 +1,7 @@
 #import "../00 assets/preamble.typ": *
 
 #show: template-setup.with(
-  doc-title: [SLR: Strategies for the automated identification of service interfaces during the migration from monoliths to microservices],
+  doc-title: [SLR: Identification of service interfaces during the migration from monoliths to microservices],
   doc-abstract: lorem(120)
 )
 
