@@ -26,8 +26,8 @@
 ) = {
   // Verringert den vertikalen Abstand für alle Block-Zitate
   show quote.where(block: true): set block(
-    above: 1em,
-    below: 1em,
+    above: 1.5em,
+    below: 1.5em,
   )
 
   // Load IEEE Template
