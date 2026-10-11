@@ -32,8 +32,16 @@
     scope: "parent",
     caption: [Scaling and deploying of Monoliths and Microservices by #citeauthor(<lewis2014Microservices>)]
   ) <fig:monolith_and_microservices>
+]
 
-  == Migration Strategies (according #citeauthor(<abdellatif2021taxonomy>))
+= Background and Related Work
+== Monolith vs. Microservices
+
+== Migration
+
+=== Migration Phases
+#note[
+   === Migration Strategies (according #citeauthor(<abdellatif2021taxonomy>))
   The authors #citeauthor(<abdellatif2021taxonomy>) suggest three general strategies of migrating a legacy system into a SOA: _top-down-_, _bottom-up-_ and _hybrid strategies_
 
   #include "../00 assets/mindmaps/Migration Strategies according Abdellatif.typ"
@@ -45,7 +53,9 @@
   - strategiel design defines how the bounded contexts communicates
 ]
 
-= Related Work
+== Microservice Interfaces
+
+== Existing SLR's
 
 = Methods
 #todo[Mehr in SLR-Methodik einlesen]
