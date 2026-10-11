@@ -64,7 +64,7 @@
       best
 - #strong[Enterprise Applications often consists of three main parts]:
   + User Interface (UI)
-  + Server-side application
+  + Server-Side Application
   + Database (DB)
 - #strong[Decomposition Strategy:]
   - #strong[Library Level:] an application consisting of a decomposition
@@ -88,7 +88,7 @@
     decomposed around business capabilities where each team include the
     full range of skills (From UI specialists to DB specialists)
     allowing them to use the full software stack (UI, BL and DB) this
-    will result according Conways Law in a software which is as well
+    will result according Conway's Law in a software which is as well
     organized around business capabilities
     - explicit separation which is enforced due to the usage of service
       components make its easier to keep team responsibilities
@@ -108,7 +108,7 @@
       version of the entire application
     - people are facing frustrations with monoliths as applications are
       more deployed to the cloud
-  - Microservices are individually deployable
+  - #strong[Microservices are individually deployable]
     - Microservice adds an opportunity for more granular release
       planning
     - Can speed up release process
@@ -204,7 +204,7 @@
 
 == Limitations
 
-- authors are active members of the microservice community
+- authors are active members of the microservice community itself
   - potentially more subjective in this regard
 
 == Paper Outline and Read Progress

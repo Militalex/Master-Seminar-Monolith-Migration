@@ -25,7 +25,7 @@
 == Introduction (What is the Paper about?)
 
 - Paper #strong[performed an SLR] to #strong[create a taxonomy] to
-  categorize #emph[Service Identification Approaches (SIA)] focusiing on
+  categorize #emph[Service Identification Approaches (SIA)] focusing on
   #emph[bottom-up] and #emph[hybrid strategies]
 - Paper aims to study SIAs in literature along four dimensions:
   #emph[Used Inputs], #emph[Applied Processes], #emph[Resulting Outputs]
