@@ -15,3 +15,12 @@
 - **RQ1–RQ3:** Die Fragen sind okay, aber RQ1 ist sehr lang. Vielleicht aufteilen in „Methoden/Prozeduren“ und „Reifegrad“.
 
 - **AI-Acknowledgement:** Gut, dass du es erwähnst. Ergänze Modell/Version und wie du die KI genau genutzt hast (z. B. Prompt-Strategie, Validierung).
+
+
+## Feedback
+Ich kann aus Ihrer Spezifikation nachvollziehen, wie Sie nun weiter vorgehen. Es freut mich, dass Sie den Fokus Ihrer Arbeit gefunden haben. Ich drücke die Daumen, dass Ihr weiteres Vorgehen wie von Ihnen skizziert funktioniert.
+
+Legen Sie im nächsten Schritt basierend auf der IEEE-Vorlage Ihr Papier an. Sie haben diese Vorlage ja bereits für die Spezifikation genutzt. Tipps zum Aufbau des Papiers finden Sie auf der entsprechenden Seite unseres Gruppen-Wikis.
+
+Zu Ihrer Info:
+Heute Nachmittag um 17:00 Uhr findet eine Online-Rechercheschulung für die Seminarstudierenden statt. Dort können Sie etwaige Fragen zum Recherchieren einbringen. Info und Meeting-Link siehe https://lea.hochschule-bonn-rhein-sieg.de/goto.php/fold/1901681, falls Sie am vergangenen Freitag nicht bereits mitgemacht haben.
