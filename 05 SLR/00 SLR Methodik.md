@@ -5,14 +5,14 @@
 ## Aufteilung in Phasen nach Kitchenham et. al
 
 ### Phase 1: Review-Planung
-- [ ] **Bedarfsanalyse:** Prüfe, ob es bereits aktuelle SLRs zu deinem Thema gibt. Wenn ja, musst du deinen Fokus schärfen.
-- [ ] **Forschungsfragen (RQ) formulieren:** Deine Fragen bestimmen die gesamte Methodik. Nutze oft das **PICOC-Schema**:
+- [x] **Bedarfsanalyse:** Prüfe, ob es bereits aktuelle SLRs zu deinem Thema gibt. Wenn ja, musst du deinen Fokus schärfen.
+- [x] **Forschungsfragen (RQ) formulieren:** Deine Fragen bestimmen die gesamte Methodik. Nutze oft das **PICOC-Schema**:
 	- **P**opulation (Zielgruppe/System)
 	- **I**ntervention (Technik/Methode)
 	- **C**omparison (Vergleichsmethode)
 	- **O**utcome (Ergebnis/Effekt)
 	- **C**ontext (Umfeld)
-- [ ] **Das Review-Protokoll erstellen:** Das ist dein "Gesetzbuch". Hier legst du Suchstrings, Datenbanken sowie Einschluss- und Ausschlusskriterien (IC/EC) fest.
+- [x] **Das Review-Protokoll erstellen:** Das ist dein "Gesetzbuch". Hier legst du Suchstrings, Datenbanken sowie Einschluss- und Ausschlusskriterien (IC/EC) fest.
 
 ### Phase 2 : Review-Durchführung
 - [ ] **Identifikation der Forschung:** Erstelle Suchstrings mit booleschen Operatoren (AND/OR) und durchsuche digitale Bibliotheken (z. B. IEEE Xplore, ACM Digital Library, Google Scholar).
