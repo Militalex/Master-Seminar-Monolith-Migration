@@ -97,7 +97,7 @@ Therefore, this work seeks to conduct a _systematic literature review (SLR)_ to 
   + Which methods and procedures exist for defining service interfaces after the service identification phase in the migration from monoliths to microservices?
     - How are they implemented?
     - Ho mature are they?
-  + Which types, patterns amd metrics are used in the examined methods and procedures?
+  + Which types, patterns and metrics are used in the examined methods and procedures?
   + How are the methods and procedures evaluated?
 ]
 
