@@ -69,7 +69,7 @@ AND
 ```
 - 226 results
 
-== Search on 07.10.2026 at ACM
+== Search at ACM
 === Microservice, Monolith and Migration in Abstract and Interfaces Aspects Full-Text Search
 ```yasm
 [[Abstract: microservice*] OR [Abstract: micro-service*] OR [Abstract: micro service*]]
@@ -80,8 +80,9 @@ AND
 AND
 [[All: service interface*] OR [All: service contract*] OR [All: api design] OR [All: api specification] OR [All: api contract*] OR [All: interface design] OR [All: interface specification] OR [All: interface selection] OR [All: endpoint design] OR [All: service boundar*] OR [All: communication pattern*]]
 ```
-- 85 results
+- 85 results (07.10.2026)
 - 89 results (28.10.2026)
+- 89 results (04.11.2026)
 
 === AI Categorized Papers from the first 20
 #set page(paper: "a4", margin: 1.5cm)
