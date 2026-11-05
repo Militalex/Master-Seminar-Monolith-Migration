@@ -3,7 +3,7 @@
 == A Systematic Literature Review of Machine Learning Approaches for Migrating Monolithic Systems to Microservices
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Source:* I. Trabelsi _et al._ "A Systematic Literature Review of Machine Learning Approaches for Migrating Monolithic Systems to Microservices," _IEEE Transactions on Software Engineering_, 2025. [Online]. Available: #link("https://ieeexplore.ieee.org/document/11145241/")]
+  #text(size: 0.9em)[*Citation:* I. Trabelsi _et al._ "A Systematic Literature Review of Machine Learning Approaches for Migrating Monolithic Systems to Microservices," _IEEE Transactions on Software Engineering_, 2025. [Online]. Available: #link("https://ieeexplore.ieee.org/document/11145241/")]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[

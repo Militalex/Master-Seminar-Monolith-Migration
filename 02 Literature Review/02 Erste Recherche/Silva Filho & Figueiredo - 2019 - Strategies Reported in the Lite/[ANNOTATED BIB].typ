@@ -3,7 +3,7 @@
 == Strategies Reported in the Literature to Migrate to Microservices Based Architecture
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Source:* H. C. D. Silva Filho and G. D. Figueiredo Carneiro "Strategies Reported in the Literature to Migrate to Microservices Based Architecture," _Proceedings of the 16th International Conference on Information Technology-New Generations (ITNG 2019)_, 2019. [Online]. Available: #link("http://link.springer.com/10.1007/978-3-030-14070-0_81")]
+  #text(size: 0.9em)[*Citation:* H. C. D. Silva Filho and G. D. Figueiredo Carneiro "Strategies Reported in the Literature to Migrate to Microservices Based Architecture," _Proceedings of the 16th International Conference on Information Technology-New Generations (ITNG 2019)_, 2019. [Online]. Available: #link("http://link.springer.com/10.1007/978-3-030-14070-0_81")]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[

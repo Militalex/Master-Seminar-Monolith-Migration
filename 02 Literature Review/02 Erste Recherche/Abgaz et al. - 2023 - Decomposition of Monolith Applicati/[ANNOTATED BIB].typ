@@ -3,7 +3,7 @@
 == Decomposition of Monolith Applications Into Microservices Architectures: A Systematic Review
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Source:* Y. Abgaz _et al._ "Decomposition of Monolith Applications Into Microservices Architectures: A Systematic Review," _IEEE Transactions on Software Engineering_, 2023. [Online]. Available: #link("https://ieeexplore.ieee.org/document/10160171/")]
+  #text(size: 0.9em)[*Citation:* Y. Abgaz _et al._ "Decomposition of Monolith Applications Into Microservices Architectures: A Systematic Review," _IEEE Transactions on Software Engineering_, 2023. [Online]. Available: #link("https://ieeexplore.ieee.org/document/10160171/")]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[

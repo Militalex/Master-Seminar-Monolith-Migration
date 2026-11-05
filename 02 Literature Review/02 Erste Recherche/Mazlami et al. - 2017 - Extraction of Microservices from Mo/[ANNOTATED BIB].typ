@@ -3,7 +3,7 @@
 == Extraction of Microservices from Monolithic Software Architectures
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Source:* G. Mazlami _et al._ "Extraction of Microservices from Monolithic Software Architectures," _2017 IEEE International Conference on Web Services (ICWS)_, 2017. [Online]. Available: #link("http://ieeexplore.ieee.org/document/8029803/")]
+  #text(size: 0.9em)[*Citation:* G. Mazlami _et al._ "Extraction of Microservices from Monolithic Software Architectures," _2017 IEEE International Conference on Web Services (ICWS)_, 2017. [Online]. Available: #link("http://ieeexplore.ieee.org/document/8029803/")]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
