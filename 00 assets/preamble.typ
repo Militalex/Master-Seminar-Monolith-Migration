@@ -1,4 +1,5 @@
 #import "@preview/charged-ieee:0.1.4": ieee
+#import "template-Functions-V0.0.typ": *
 
 // Own Commands
 #let citeauthor(cite-label) = cite(cite-label, form: "prose")
