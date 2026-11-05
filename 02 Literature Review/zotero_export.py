@@ -87,10 +87,10 @@ VSCODE_MARKDOWN_THEME = """
 # ---------------------------------------------------------------------------
 
 def escape_typst_text(text: str) -> str:
-    """Escaped Sonderzeichen für Typst (z.B. #, /, _, *, [, ], @)."""
+    """Escaped Sonderzeichen für Typst (z.B. #, /, _, *, [, ], @, \\)."""
     if not text:
         return ""
-    return re.sub(r'([#/*_\[\]@])', r'\\\1', text)
+    return re.sub(r'([#/*_\[\]@\\])', r'\\\1', text)
 
 
 def clean_name(name: str) -> str:
@@ -134,7 +134,8 @@ def is_empty_demo_note(typ_text: str) -> bool:
     text = re.sub(r"^(?:==|=)\s+.*$", "", typ_text, flags=re.MULTILINE)
     text = re.sub(
         r"#block|\btext\b|\bsize\b|\bfill\b|\binset\b|\bradius\b|\bwidth\b|"
-        r"\bSource\b|\bPaper Information\b|\bRating\b|\bOwn Keywords\b|\bReading Progress\b",
+        r"\bCitation\b|\bSource\b|\bPaper Information\b|\bRating\b|"
+        r"\bOwn Keywords\b|\bReading Progress\b",
         "",
         text,
         flags=re.IGNORECASE,
@@ -209,8 +210,8 @@ def _collapse_blank_lines_in_lists(typst_output: str) -> str:
 # ---------------------------------------------------------------------------
 
 def parse_ethereal_tags(tags, extra_text: str = ""):
-    """Liest Ratings, Lesenfortschritte und Tags aus Zotero aus."""
-    ratings, reading_progress, paper_progress, tiered_tags = [], [], [], []
+    """Liest Ratings, Lesenfortschritte, Quellen und Tags aus Zotero aus."""
+    ratings, reading_progress, paper_progress, source_info, tiered_tags = [], [], [], [], []
 
     if extra_text:
         for m in re.finditer(r"\b(?:rate|rating):\s*(\d+)\b", extra_text, re.IGNORECASE):
@@ -227,7 +228,10 @@ def parse_ethereal_tags(tags, extra_text: str = ""):
         if not tag_str:
             continue
 
-        parsed = _parse_tag(tag_str, ratings, reading_progress, paper_progress, tiered_tags)
+        parsed = _parse_tag(
+            tag_str, ratings, reading_progress, paper_progress,
+            source_info, tiered_tags,
+        )
         if parsed:
             continue
 
@@ -240,12 +244,13 @@ def parse_ethereal_tags(tags, extra_text: str = ""):
         list(dict.fromkeys(ratings)),
         list(dict.fromkeys(reading_progress)),
         list(dict.fromkeys(paper_progress)),
+        list(dict.fromkeys(source_info)),
         category_tags,
     )
 
 
-def _parse_tag(tag_str, ratings, reading_progress, paper_progress, tiered_tags) -> bool:
-    """Verarbeitet einen Tag als Rating oder Progress. Liefert True bei Treffer."""
+def _parse_tag(tag_str, ratings, reading_progress, paper_progress, source_info, tiered_tags) -> bool:
+    """Verarbeitet einen Tag als Rating, Progress oder Source. Liefert True bei Treffer."""
     if any(char in tag_str for char in ["⭐", "★"]):
         ratings.append(escape_typst_text(tag_str))
         return True
@@ -270,6 +275,11 @@ def _parse_tag(tag_str, ratings, reading_progress, paper_progress, tiered_tags) 
         paper_progress.append(" > ".join(parts))
         return True
 
+    if (m := re.match(r"^#?source/(.+)$", tag_str, re.IGNORECASE)):
+        parts = [escape_typst_text(p.strip()) for p in m.group(1).split("/") if p.strip()]
+        source_info.append(" > ".join(parts))
+        return True
+
     return False
 
 
@@ -286,7 +296,7 @@ def _add_tiered_tag(tag_str, tiered_tags) -> None:
 # METADATEN-BLÖCKE & IEEE-ZITATION
 # ---------------------------------------------------------------------------
 
-def build_metadata_blocks(ieee_citation, ratings, reading_progress, paper_progress, category_tags) -> str:
+def build_metadata_blocks(ieee_citation, ratings, reading_progress, paper_progress, source_info, category_tags) -> str:
     """Baut die strukturierten Typst-Metadatenblöcke auf."""
     blocks = []
 
@@ -297,7 +307,8 @@ def build_metadata_blocks(ieee_citation, ratings, reading_progress, paper_progre
                 f'  #text(size: 0.9em)[*{label}:* {content}]\n]'
             )
 
-    add_block("Source", ieee_citation)
+    add_block("Citation", ieee_citation)
+    add_block("Source", ", ".join(source_info))
     add_block("Paper Information", ", ".join(paper_progress))
     add_block("Rating", ", ".join(ratings))
     add_block("Own Keywords", ", ".join(category_tags))
@@ -312,11 +323,14 @@ def format_ieee_citation(creators, title, venue, year, url) -> str:
     for first, last in creators:
         if not last:
             continue
+        last_esc = escape_typst_text(last)
         if first:
-            initials = ". ".join([p[0].upper() for p in re.split(r"[\s.-]+", first) if p]) + "."
-            formatted_authors.append(f"{initials} {last}")
+            initials = ". ".join(
+                [p[0].upper() for p in re.split(r"[\s.-]+", first) if p]
+            ) + "."
+            formatted_authors.append(f"{escape_typst_text(initials)} {last_esc}")
         else:
-            formatted_authors.append(last)
+            formatted_authors.append(last_esc)
 
     if len(formatted_authors) == 1:
         authors_str = formatted_authors[0]
@@ -331,13 +345,17 @@ def format_ieee_citation(creators, title, venue, year, url) -> str:
     if authors_str:
         parts.append(authors_str)
     if title:
-        parts.append(f'"{title.strip().rstrip(".")},"')
+        safe_title = escape_typst_text(title.strip().rstrip("."))
+        parts.append(f'"{safe_title},"')
     if venue:
-        parts.append(f"_{venue.strip()}_,")
+        safe_venue = escape_typst_text(venue.strip())
+        parts.append(f"_{safe_venue}_,")
     if year:
-        parts.append(f"{year}.")
+        parts.append(f"{escape_typst_text(year)}.")
     if url:
-        parts.append(f'[Online]. Available: #link("{url.strip()}")')
+        # Innerhalb eines Typst-Strings nur \ und " escapen
+        safe_url = url.strip().replace("\\", "\\\\").replace('"', '\\"')
+        parts.append(f'[Online]. Available: #link("{safe_url}")')
 
     return " ".join(parts)
 
@@ -750,19 +768,28 @@ def write_note_file(note: StagedNote, note_stem: str, item_folder: Path, use_sub
     if not use_subfolder:
         note_stem = build_filename(meta.author_short, meta.year, meta.title, tag=note.tag) or clean_name(note.tag)
 
+    safe_title = escape_typst_text(meta.title)
+
     if note.is_annotated_bib:
-        header_line = f"== {meta.title or 'Annotated Bibliography'}\n\n{metadata_blocks}"
+        header_line = f"== {safe_title or 'Annotated Bibliography'}\n\n{metadata_blocks}"
     else:
         ieee_block = (
             f'#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[\n'
-            f'  #text(size: 0.9em)[*Source:* {ieee_citation}]\n]'
+            f'  #text(size: 0.9em)[*Citation:* {ieee_citation}]\n]'
             if ieee_citation else ""
         )
-        header_line = f"== {meta.title or 'Note'}\n\n{ieee_block}"
+        header_line = f"== {safe_title or 'Note'}\n\n{ieee_block}"
 
     typ_text = note.typ_text
     if re.search(r"^(?:==|=)\s+", typ_text, re.MULTILINE):
-        typ_text = re.sub(r"^(?:==|=)\s+.*$", header_line, typ_text, count=1, flags=re.MULTILINE)
+        # lambda statt String-Replacement: verhindert, dass \* als re.sub-Escape interpretiert wird
+        typ_text = re.sub(
+            r"^(?:==|=)\s+.*$",
+            lambda _m: header_line,
+            typ_text,
+            count=1,
+            flags=re.MULTILINE,
+        )
     else:
         typ_text = f"{header_line}\n\n{typ_text}"
 
@@ -794,9 +821,11 @@ def process_item(cursor, item_id: int, target_folder: Path, has_typst: bool) -> 
     annotated_bibs, other_notes = collect_notes(cursor, item_id)
 
     ieee_citation = format_ieee_citation(meta.creators, meta.title, meta.venue, meta.year, meta.url)
-    ratings, reading_progress, paper_progress, category_tags = parse_ethereal_tags(meta.tags, meta.extra)
+    ratings, reading_progress, paper_progress, source_info, category_tags = \
+        parse_ethereal_tags(meta.tags, meta.extra)
     metadata_blocks = build_metadata_blocks(
-        ieee_citation, ratings, reading_progress, paper_progress, category_tags
+        ieee_citation, ratings, reading_progress, paper_progress,
+        source_info, category_tags,
     )
     has_valid_metadata = bool(meta.title.strip() or ieee_citation.strip())
 
@@ -825,12 +854,14 @@ def process_item(cursor, item_id: int, target_folder: Path, has_typst: bool) -> 
         write_note_file(note, note_stem, item_folder, use_subfolder, meta, metadata_blocks, ieee_citation, has_typst)
 
 
-def _build_info_content(meta: ItemMetadata, metadata_blocks: str, has_valid_metadata: bool, annotated_bibs) -> Optional[str]:
+def _build_info_content(meta: ItemMetadata, metadata_blocks: str,
+                        has_valid_metadata: bool, annotated_bibs) -> Optional[str]:
     has_annotated_bibs = len(annotated_bibs) > 0 and "Annotated Bibs" in EXPORT_OPTIONS
     if "Publication Infos" not in EXPORT_OPTIONS or not has_valid_metadata or has_annotated_bibs:
         return None
 
-    content = f"== {meta.title or 'Publication Metadata'}\n\n{metadata_blocks}"
+    safe_title = escape_typst_text(meta.title)
+    content = f"== {safe_title or 'Publication Metadata'}\n\n{metadata_blocks}"
     if FILTER_DEMO_FILES and is_empty_demo_note(content):
         return None
     return content
