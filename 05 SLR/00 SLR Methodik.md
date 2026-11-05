@@ -15,14 +15,14 @@
 - [x] **Das Review-Protokoll erstellen:** Das ist dein "Gesetzbuch". Hier legst du Suchstrings, Datenbanken sowie Einschluss- und Ausschlusskriterien (IC/EC) fest.
 
 ### Phase 2 : Review-Durchführung
-- [ ] **Identifikation der Forschung:** Erstelle Suchstrings mit booleschen Operatoren (AND/OR) und durchsuche digitale Bibliotheken (z. B. IEEE Xplore, ACM Digital Library, Google Scholar).
+- [x] **Identifikation der Forschung:** Erstelle Suchstrings mit booleschen Operatoren (AND/OR) und durchsuche digitale Bibliotheken (z. B. IEEE Xplore, ACM Digital Library, Google Scholar).
 - [ ] **Auswahl der Primärstudien:** Hier filterst du die Treffer in mehreren Runden:
-  - [ ] **Quality Assessment:** Nicht jede Studie ist methodisch sauber. Erstelle eine Checkliste (z. B. 5–10 Fragen), um die Vertrauenswürdigkeit der Ergebnisse zu bewerten.
-  	- **Tipp:** Ein Paper kann thematisch passen, aber aufgrund schlechter Methodik bei der Datensynthese geringer gewichtet werden.
-  - [ ] **Refinement 1:** Packe alle Resultate zusammen und filter unvollständige Quellen und Duplikate
+  - [x] **Refinement 1:** Packe alle Resultate zusammen und filter unvollständige Quellen und Duplikate
   - [ ] **Refinement 2:** Titel prüfen. Passt das Paper zu den IC/EC?
   - [ ] **Refinement 3:** Abstract, Einleitung und Konklusions Abschnitte untersuchen. Passt das Paper zu den IC/EC?
   - [ ] **Refinement 4:** Volltext lesen und final entscheiden. Passt das Paper zu den IC/EC?
+    - - [ ] **Quality Assessment:** Nicht jede Studie ist methodisch sauber. Erstelle eine Checkliste (z. B. 5–10 Fragen), um die Vertrauenswürdigkeit der Ergebnisse zu bewerten.
+    	- **Tipp:** Ein Paper kann thematisch passen, aber aufgrund schlechter Methodik bei der Datensynthese geringer gewichtet werden.
   - [ ] **Snowballing:** Führe mit den extrahierten Papern Forward und Backward Snowballing durch
   - [ ] **Refinement 5:** Lasse die Snowballing Paper die refinement Schritte 1 bis 4 durchlaufen
 - [ ] **Datenextraktion:** Erstelle ein Formular (meist eine Excel-Tabelle), um relevante Informationen strukturiert zu sammeln
