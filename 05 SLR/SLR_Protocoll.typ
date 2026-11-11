@@ -175,7 +175,7 @@ AND
   ```
 ]
 ==== *Idea*
-Microservice, Monolith and Migration in Abstract and Interfaces Aspects Full-Text Search
+Microservice, Monolith and Migration in Abstract and Interface Aspects Full-Text Search
 
 === Search String for Springer
 The Search String for Springer had to be slightly adapted, as no abstract search was possible
@@ -191,12 +191,13 @@ The Search String for Springer had to be slightly adapted, as no abstract search
 ]
 
 == Results by used Searching Platform:
-*Note:* Books were filtered out directly
+
 #table(
   columns: (1fr, 1fr),
-  [*Search Platform*], [*Results*],
+  align: center,
+  [*Search Platform*], [*Results: Abs./Full.Txt/Dupli. *],
   [#mark(blue)[#link("https://dl.acm.org/")[ACM - Digital Library]]],
-  [89 results],
+  [82/],
   [#mark(blue)[#link("https://ieeexplore.ieee.org/")[IEEE - Xplore]]],
   [99 results (without books)],
   [#mark(blue)[#link("https://link.springer.com/")[Springer]]],
@@ -204,6 +205,17 @@ The Search String for Springer had to be slightly adapted, as no abstract search
   [*All*],[271 results],
   [*Duplicates*],[1 result],
   [*Results entering Screening*],[270 results]
+)
+
+#figure(
+  placement: bottom,
+  scope: "parent",
+  table(
+    columns: (1fr, 1fr, 1fr, 1fr),
+    align: center,
+    [*Search Platform*], [*Results: Abstract Search*],[*Results: Full-Text Search*], [*Duplicates*],
+    [#mark(blue)[#link("https://dl.acm.org/")[ACM - Digital Library]]],[82]
+  )
 )
 
 == Inclusion and Exclusion Criteria
