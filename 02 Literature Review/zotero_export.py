@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -27,6 +28,8 @@ FILTER_DEMO_FILES = True
 
 # Mögliche Werte: "Annotated Bibs", "Notes", "Publications", "PDFs", "Publication Infos"
 EXPORT_OPTIONS = ["Annotated Bibs", "PDFs", "Publication Infos"]
+# Number of Typst compilations run concurrently
+TYPST_COMPILE_WORKERS = 4
 
 ZOTERO_DIR = Path.home() / "Zotero"
 EXPORT_DIR = Path(__file__).parent.resolve()
@@ -209,9 +212,20 @@ def _collapse_blank_lines_in_lists(typst_output: str) -> str:
 # TAGS, RATINGS, PROGRESS
 # ---------------------------------------------------------------------------
 
-def parse_ethereal_tags(tags, extra_text: str = ""):
-    """Liest Ratings, Lesenfortschritte, Quellen und Tags aus Zotero aus."""
-    ratings, reading_progress, paper_progress, source_info, tiered_tags = [], [], [], [], []
+@dataclass
+class ParsedTags:
+    ratings: list[str]
+    reading_progress: list[str]
+    paper_progress: list[str]
+    source_info: list[str]
+    slr_criteria: list[str]
+    category_tags: list[str]
+
+
+def parse_ethereal_tags(tags, extra_text: str = "") -> ParsedTags:
+    """Liest Ratings, Fortschritte, Quellen, SLR-Kriterien und Tags aus Zotero aus."""
+    ratings, reading_progress, paper_progress = [], [], []
+    source_info, slr_criteria, tiered_tags = [], [], []
 
     if extra_text:
         for m in re.finditer(r"\b(?:rate|rating):\s*(\d+)\b", extra_text, re.IGNORECASE):
@@ -230,7 +244,7 @@ def parse_ethereal_tags(tags, extra_text: str = ""):
 
         parsed = _parse_tag(
             tag_str, ratings, reading_progress, paper_progress,
-            source_info, tiered_tags,
+            source_info, slr_criteria, tiered_tags,
         )
         if parsed:
             continue
@@ -239,18 +253,53 @@ def parse_ethereal_tags(tags, extra_text: str = ""):
 
     tiered_tags.sort(key=lambda item: item[0])
     category_tags = [text for _, text in tiered_tags]
+    formatted_source_info = _format_source_info(source_info)
 
-    return (
-        list(dict.fromkeys(ratings)),
-        list(dict.fromkeys(reading_progress)),
-        list(dict.fromkeys(paper_progress)),
-        list(dict.fromkeys(source_info)),
-        category_tags,
+    return ParsedTags(
+        ratings=list(dict.fromkeys(ratings)),
+        reading_progress=list(dict.fromkeys(reading_progress)),
+        paper_progress=list(dict.fromkeys(paper_progress)),
+        source_info=formatted_source_info,
+        slr_criteria=list(dict.fromkeys(slr_criteria)),
+        category_tags=category_tags,
     )
 
 
-def _parse_tag(tag_str, ratings, reading_progress, paper_progress, source_info, tiered_tags) -> bool:
-    """Verarbeitet einen Tag als Rating, Progress oder Source. Liefert True bei Treffer."""
+def _format_source_info(source_tags: list[list[str]]) -> list[str]:
+    sources = {}
+    additional_paths = []
+    search_types = {
+        "abstract-search": "Abstract-Search",
+        "full-text-search": "Full-Text-Search",
+    }
+
+    for parts in source_tags:
+        if len(parts) == 1 or (
+            len(parts) == 2 and parts[1].lower() in search_types
+        ):
+            source_name = parts[0]
+            source_key = source_name.casefold()
+            if source_key not in sources:
+                sources[source_key] = {"name": source_name, "search_types": set()}
+            if len(parts) == 2:
+                sources[source_key]["search_types"].add(search_types[parts[1].lower()])
+        else:
+            additional_paths.append(" > ".join(escape_typst_text(p) for p in parts))
+
+    formatted = []
+    for source in sources.values():
+        text = escape_typst_text(source["name"])
+        for search_type in ("Abstract-Search", "Full-Text-Search"):
+            if search_type in source["search_types"]:
+                text += f" [{search_type}]"
+        formatted.append(text)
+
+    return list(dict.fromkeys(formatted + additional_paths))
+
+
+def _parse_tag(tag_str, ratings, reading_progress, paper_progress, source_info,
+               slr_criteria, tiered_tags) -> bool:
+    """Verarbeitet einen Tag als Rating, Progress, Source oder SLR-Kriterium."""
     if any(char in tag_str for char in ["⭐", "★"]):
         ratings.append(escape_typst_text(tag_str))
         return True
@@ -276,8 +325,21 @@ def _parse_tag(tag_str, ratings, reading_progress, paper_progress, source_info, 
         return True
 
     if (m := re.match(r"^#?source/(.+)$", tag_str, re.IGNORECASE)):
-        parts = [escape_typst_text(p.strip()) for p in m.group(1).split("/") if p.strip()]
-        source_info.append(" > ".join(parts))
+        parts = [p.strip() for p in m.group(1).split("/") if p.strip()]
+        if parts:
+            source_info.append(parts)
+        return True
+
+    if (m := re.match(
+        r"^#?slr/(?:exclusion|excluded|inclusion|included)/(.+)$",
+        tag_str,
+        re.IGNORECASE,
+    )):
+        criterion_parts = [
+            escape_typst_text(p.strip()) for p in m.group(1).split("/") if p.strip()
+        ]
+        if criterion_parts:
+            slr_criteria.append(" > ".join(criterion_parts))
         return True
 
     return False
@@ -296,7 +358,7 @@ def _add_tiered_tag(tag_str, tiered_tags) -> None:
 # METADATEN-BLÖCKE & IEEE-ZITATION
 # ---------------------------------------------------------------------------
 
-def build_metadata_blocks(ieee_citation, ratings, reading_progress, paper_progress, source_info, category_tags) -> str:
+def build_metadata_blocks(ieee_citation: str, tags: ParsedTags) -> str:
     """Baut die strukturierten Typst-Metadatenblöcke auf."""
     blocks = []
 
@@ -308,11 +370,12 @@ def build_metadata_blocks(ieee_citation, ratings, reading_progress, paper_progre
             )
 
     add_block("Citation", ieee_citation)
-    add_block("Source", ", ".join(source_info))
-    add_block("Paper Information", ", ".join(paper_progress))
-    add_block("Rating", ", ".join(ratings))
-    add_block("Own Keywords", ", ".join(category_tags))
-    add_block("Reading Progress", ", ".join(reading_progress))
+    add_block("Source", ", ".join(tags.source_info))
+    add_block("Inclusion/Exclusion Criteria", ", ".join(tags.slr_criteria))
+    add_block("Paper Information", ", ".join(tags.paper_progress))
+    add_block("Rating", ", ".join(tags.ratings))
+    add_block("Own Keywords", ", ".join(tags.category_tags))
+    add_block("Reading Progress", ", ".join(tags.reading_progress))
 
     return "\n\n".join(blocks)
 
@@ -466,24 +529,20 @@ class StagedNote:
 def fetch_item_metadata(cursor, item_id: int) -> ItemMetadata:
     """Holt alle relevanten Metadaten eines Eintrags aus der Zotero-Datenbank."""
     cursor.execute(
-        "SELECT t.typeName FROM items i JOIN itemTypes t ON i.itemTypeID = t.itemTypeID "
-        "WHERE i.itemID = ?",
-        (item_id,),
-    )
-    row_type = cursor.fetchone()
-    item_type = row_type[0] if row_type else ""
-
-    cursor.execute(
         """
-        SELECT f.fieldName, v.value
-        FROM itemData d
-        JOIN fields f ON d.fieldID = f.fieldID
-        JOIN itemDataValues v ON d.valueID = v.valueID
-        WHERE d.itemID = ?
+        SELECT t.typeName, f.fieldName, v.value
+        FROM items i
+        JOIN itemTypes t ON i.itemTypeID = t.itemTypeID
+        LEFT JOIN itemData d ON d.itemID = i.itemID
+        LEFT JOIN fields f ON d.fieldID = f.fieldID
+        LEFT JOIN itemDataValues v ON d.valueID = v.valueID
+        WHERE i.itemID = ?
         """,
         (item_id,),
     )
-    fields = dict(cursor.fetchall())
+    rows = cursor.fetchall()
+    item_type = rows[0][0] if rows else ""
+    fields = {field_name: value for _, field_name, value in rows if field_name}
 
     title = fields.get("title", "")
     venue = (
@@ -645,13 +704,21 @@ def find_target_collection(all_colls: dict, target_name: str) -> Optional[int]:
     )
 
 
-def is_descendant_of(coll_id: int, ancestor_id: int, all_colls: dict) -> bool:
-    curr = coll_id
-    while curr in all_colls:
-        if curr == ancestor_id:
-            return True
-        curr = all_colls[curr]["parent"]
-    return False
+def get_descendant_collection_ids(ancestor_id: int, all_colls: dict) -> set:
+    children_by_parent = {}
+    for collection_id, info in all_colls.items():
+        children_by_parent.setdefault(info["parent"], []).append(collection_id)
+
+    descendants = set()
+    pending = [ancestor_id]
+    while pending:
+        collection_id = pending.pop()
+        if collection_id in descendants:
+            continue
+        descendants.add(collection_id)
+        pending.extend(children_by_parent.get(collection_id, []))
+
+    return descendants
 
 
 def get_relative_path(coll_id: int, ancestor_id: int, all_colls: dict) -> Path:
@@ -701,23 +768,23 @@ def compile_typst_file(typ_path: Path, pdf_path: Path) -> None:
 # EXPORT-ORDNER AUFRÄUMEN
 # ---------------------------------------------------------------------------
 
-def clean_export_directory(export_dir: Path, current_script: Path) -> None:
-    """Löscht alte Exportdateien, ohne Entwicklungsordner/Skripte zu antasten."""
-    protected = {
-        current_script.name.lower(),
-        ".git", ".gitignore", ".venv", "__pycache__", ".vscode",
-    }
-    for item in export_dir.iterdir():
-        if item.name.lower() in protected:
-            continue
-        try:
-            long_item = prepare_path(item)
-            if item.is_dir():
-                shutil.rmtree(long_item)
-            else:
-                long_item.unlink()
-        except Exception as e:
-            print(f"Warnung: '{item.name}' konnte nicht gelöscht werden ({e})")
+def clean_export_directory(export_dir: Path) -> None:
+    """Entfernt Exportinhalte rekursiv und bewahrt Skriptdateien auf."""
+    script_extensions = {".py", ".pyw", ".ps1", ".bat", ".cmd", ".sh"}
+
+    def remove_non_script_content(path: Path) -> None:
+        if path.is_symlink():
+            prepare_path(path).unlink()
+        elif path.is_dir():
+            for child in path.iterdir():
+                remove_non_script_content(child)
+            if not any(path.iterdir()):
+                prepare_path(path).rmdir()
+        elif path.suffix.lower() not in script_extensions:
+            prepare_path(path).unlink()
+
+    for item in prepare_path(export_dir).iterdir():
+        remove_non_script_content(item)
 
 
 # ---------------------------------------------------------------------------
@@ -745,7 +812,9 @@ def write_pdf(src_pdf: Path, item_folder: Path, use_subfolder: bool, meta: ItemM
         print(f"Fehler beim Kopieren von PDF '{src_pdf.name}': {e}")
 
 
-def write_info_file(content: str, item_folder: Path, use_subfolder: bool, meta: ItemMetadata, has_typst: bool) -> None:
+def write_info_file(content: str, item_folder: Path, use_subfolder: bool,
+                    meta: ItemMetadata, has_typst: bool,
+                    compile_jobs: dict[Path, Path]) -> None:
     if use_subfolder:
         info_stem = "[INFO]"
     else:
@@ -758,13 +827,14 @@ def write_info_file(content: str, item_folder: Path, use_subfolder: bool, meta: 
     try:
         prepare_path(info_typ_file).write_text(content, encoding="utf-8")
         if has_typst:
-            compile_typst_file(prepare_path(info_typ_file), prepare_path(info_pdf_file))
+            compile_jobs[prepare_path(info_pdf_file)] = prepare_path(info_typ_file)
     except Exception as e:
         print(f"Fehler beim Generieren der Info-Datei für '{meta.title}': {e}")
 
 
 def write_note_file(note: StagedNote, note_stem: str, item_folder: Path, use_subfolder: bool,
-                    meta: ItemMetadata, metadata_blocks: str, ieee_citation: str, has_typst: bool) -> None:
+                    meta: ItemMetadata, metadata_blocks: str, ieee_citation: str,
+                    has_typst: bool, compile_jobs: dict[Path, Path]) -> None:
     if not use_subfolder:
         note_stem = build_filename(meta.author_short, meta.year, meta.title, tag=note.tag) or clean_name(note.tag)
 
@@ -803,7 +873,7 @@ def write_note_file(note: StagedNote, note_stem: str, item_folder: Path, use_sub
         prepare_path(note_typ_file).write_text(typ_text, encoding="utf-8")
         if has_typst:
             note_pdf_file = note_typ_file.with_suffix(".pdf")
-            compile_typst_file(prepare_path(note_typ_file), prepare_path(note_pdf_file))
+            compile_jobs[prepare_path(note_pdf_file)] = prepare_path(note_typ_file)
     except Exception as e:
         print(f"Fehler beim Schreiben/Kompilieren der Notiz {note_typ_file}: {e}")
 
@@ -812,7 +882,8 @@ def write_note_file(note: StagedNote, note_stem: str, item_folder: Path, use_sub
 # ITEM-VERARBEITUNG
 # ---------------------------------------------------------------------------
 
-def process_item(cursor, item_id: int, target_folder: Path, has_typst: bool) -> None:
+def process_item(cursor, item_id: int, target_folder: Path, has_typst: bool,
+                 compile_jobs: dict[Path, Path]) -> None:
     """Verarbeitet ein einzelnes Zotero-Item vollständig."""
     prepare_path(target_folder).mkdir(parents=True, exist_ok=True)
 
@@ -821,12 +892,8 @@ def process_item(cursor, item_id: int, target_folder: Path, has_typst: bool) -> 
     annotated_bibs, other_notes = collect_notes(cursor, item_id)
 
     ieee_citation = format_ieee_citation(meta.creators, meta.title, meta.venue, meta.year, meta.url)
-    ratings, reading_progress, paper_progress, source_info, category_tags = \
-        parse_ethereal_tags(meta.tags, meta.extra)
-    metadata_blocks = build_metadata_blocks(
-        ieee_citation, ratings, reading_progress, paper_progress,
-        source_info, category_tags,
-    )
+    parsed_tags = parse_ethereal_tags(meta.tags, meta.extra)
+    metadata_blocks = build_metadata_blocks(ieee_citation, parsed_tags)
     has_valid_metadata = bool(meta.title.strip() or ieee_citation.strip())
 
     staged_info = _build_info_content(meta, metadata_blocks, has_valid_metadata, annotated_bibs)
@@ -847,11 +914,14 @@ def process_item(cursor, item_id: int, target_folder: Path, has_typst: bool) -> 
         write_pdf(src_pdf, item_folder, use_subfolder, meta, pdf_idx, len(staged_pdfs))
 
     if staged_info is not None:
-        write_info_file(staged_info, item_folder, use_subfolder, meta, has_typst)
+        write_info_file(staged_info, item_folder, use_subfolder, meta, has_typst, compile_jobs)
 
     for pos, note in enumerate(staged_notes):
         note_stem = resolved_stems[pos] if use_subfolder else ""
-        write_note_file(note, note_stem, item_folder, use_subfolder, meta, metadata_blocks, ieee_citation, has_typst)
+        write_note_file(
+            note, note_stem, item_folder, use_subfolder, meta, metadata_blocks,
+            ieee_citation, has_typst, compile_jobs,
+        )
 
 
 def _build_info_content(meta: ItemMetadata, metadata_blocks: str,
@@ -920,8 +990,8 @@ def export_zotero() -> None:
         print(f"Fehler: zotero.sqlite unter {db_path} nicht gefunden!")
         return
 
-    clean_export_directory(EXPORT_DIR, Path(__file__))
     has_typst = shutil.which("typst") is not None
+    compile_jobs = {}
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_db = Path(tmpdir) / "zotero.sqlite"
@@ -937,15 +1007,42 @@ def export_zotero() -> None:
                 print(f"Fehler: Die Sammlung '{TARGET_COLLECTION}' wurde in Zotero nicht gefunden!")
                 return
 
-            cursor.execute("SELECT collectionID, itemID FROM collectionItems")
-            for coll_id, item_id in cursor.fetchall():
-                if not is_descendant_of(coll_id, target_id, all_colls):
-                    continue
+            clean_export_directory(EXPORT_DIR)
 
+            target_collection_ids = get_descendant_collection_ids(target_id, all_colls)
+            cursor.execute(
+                "CREATE TEMP TABLE export_collection_ids "
+                "(collectionID INTEGER PRIMARY KEY)"
+            )
+            cursor.executemany(
+                "INSERT INTO export_collection_ids (collectionID) VALUES (?)",
+                ((collection_id,) for collection_id in target_collection_ids),
+            )
+            items_cursor = conn.cursor()
+            items_cursor.execute(
+                """
+                SELECT ci.collectionID, ci.itemID
+                FROM collectionItems ci
+                JOIN export_collection_ids eci
+                  ON eci.collectionID = ci.collectionID
+                ORDER BY ci.collectionID, ci.itemID
+                """
+            )
+            for coll_id, item_id in items_cursor:
                 target_folder = EXPORT_DIR / get_relative_path(coll_id, target_id, all_colls)
-                process_item(cursor, item_id, target_folder, has_typst)
+                process_item(cursor, item_id, target_folder, has_typst, compile_jobs)
         finally:
             conn.close()
+
+    if compile_jobs:
+        worker_count = min(TYPST_COMPILE_WORKERS, len(compile_jobs))
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = [
+                executor.submit(compile_typst_file, typ_path, pdf_path)
+                for pdf_path, typ_path in compile_jobs.items()
+            ]
+            for future in as_completed(futures):
+                future.result()
 
     print(f"Export von '{TARGET_COLLECTION}' erfolgreich abgeschlossen!")
 
