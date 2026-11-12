@@ -1,9 +1,0 @@
-== Challenges, Communication and Future of Micro Frontends Development and Implementation
-
-#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Citation:* O. Stepanov and H. Klym "Challenges, Communication and Future of Micro Frontends Development and Implementation," _2024 14th International Conference on Dependable Systems, Services and Technologies (DESSERT)_, 2024. [Online]. Available: #link("https://ieeexplore.ieee.org/document/11122150/")]
-]
-
-#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Source:* IEEE]
-]

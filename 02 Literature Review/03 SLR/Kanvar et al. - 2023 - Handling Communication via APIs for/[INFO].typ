@@ -1,11 +1,11 @@
-== Handling Communication via APIs for Microservices
+== Handling communication via apis for microservices
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Citation:* V. Kanvar _et al._ "Handling Communication via APIs for Microservices," _2023 IEEE\/ACM 45th International Conference on Software Engineering: New Ideas and Emerging Results (ICSE-NIER)_, 2023. [Online]. Available: #link("https://ieeexplore.ieee.org/document/10173907/")]
+  #text(size: 0.9em)[*Citation:* V. Kanvar _et al._ "Handling communication via apis for microservices," _Proceedings of the 45th international conference on software engineering: New ideas and emerging results_, 2023. [Online]. Available: #link("https://doi.org/10.1109/ICSE-NIER58687.2023.00013")]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Source:* ACM, IEEE]
+  #text(size: 0.9em)[*Source:* ACM [Abstract-Search] [Full-Text-Search]]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
@@ -13,13 +13,5 @@
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Rating:* ⭐⭐⭐⭐⭐]
-]
-
-#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Own Keywords:* SLR, Included, RQ1]
-]
-
-#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Reading Progress:* Abstract]
+  #text(size: 0.9em)[*Own Keywords:* JSON, communication, microservice, monolith]
 ]

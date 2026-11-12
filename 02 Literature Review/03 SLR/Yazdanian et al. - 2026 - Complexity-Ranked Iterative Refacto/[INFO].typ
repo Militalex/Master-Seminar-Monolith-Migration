@@ -1,9 +1,13 @@
-== Complexity-Ranked Iterative Refactoring from Microservices to LLM-based Multi-Agent Systems
+== Complexity-ranked iterative refactoring from microservices to LLM-based multi-agent systems
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Citation:* P. Yazdanian _et al._ "Complexity-Ranked Iterative Refactoring from Microservices to LLM-based Multi-Agent Systems," _Proceedings of the 34th ACM International Conference on the Foundations of Software Engineering_, 2026. [Online]. Available: #link("https://dl.acm.org/doi/10.1145/3803437.3805531")]
+  #text(size: 0.9em)[*Citation:* P. Yazdanian _et al._ "Complexity-ranked iterative refactoring from microservices to LLM-based multi-agent systems," _Proceedings of the 34th ACM international conference on the foundations of software engineering_, 2026. [Online]. Available: #link("https://doi.org/10.1145/3803437.3805531")]
 ]
 
 #block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
-  #text(size: 0.9em)[*Source:* ACM]
+  #text(size: 0.9em)[*Source:* ACM [Abstract-Search] [Full-Text-Search]]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Own Keywords:* AI multi-agent systems, microservices, regression analysis, service complexity, software architecture]
 ]

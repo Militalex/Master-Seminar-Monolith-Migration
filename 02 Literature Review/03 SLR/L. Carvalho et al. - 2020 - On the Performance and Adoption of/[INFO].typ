@@ -1,0 +1,13 @@
+== On the Performance and Adoption of Search-Based Microservice Identification with toMicroservices
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Citation:* L. Carvalho _et al._ "On the Performance and Adoption of Search-Based Microservice Identification with toMicroservices," _2020 IEEE International Conference on Software Maintenance and Evolution (ICSME)_, 2020.]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Source:* IEEE [Abstract-Search] [Full-Text-Search]]
+]
+
+#block(fill: rgb("f8f9fa"), inset: 8pt, radius: 3pt, width: 100%)[
+  #text(size: 0.9em)[*Own Keywords:* Aging, Couplings, Optimization, Search problems, Software engineering, Software maintenance, Visualization, legacy systems, microservice architecture, microservice identification, search-based software engineering]
+]
