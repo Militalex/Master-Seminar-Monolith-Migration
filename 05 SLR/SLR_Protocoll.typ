@@ -185,7 +185,7 @@ Combination of a precise abstract only search combined with more sensitiv abstra
 The generic Search String looks sth. like this:
 #contentBox[
   ```yasm
-  < Microservice Key Words>
+  < Microservice Key Words >
   AND < Monolith Key Words >
   AND < Migration Key Words >
   AND < Interface Keywords >
@@ -320,10 +320,20 @@ The Search String for Springer had to be adapted, as no abstract search was poss
 )
 
 == Inclusion and Exclusion Criteria
+A selected primary study must pass all Inclusion Criteria and does not fail any Exclusion Criteria.
 
 === Inclusion:
-- #mark(green)[(IC1)] The paper speaks about interfaces within a migration context.
+- #mark(green)[(IC1)] The study investigates the migration, decomposition, or modernization of a monolithic application into microservices.
+- #mark(green)[(IC2)] The study addresses the identification, definition, design, derivation, or evaluation of interfaces between the resulting microservices after their identification.
+- #mark(green)[(IC3)] The study provides sufficient information to answer at least one research question.
 
 === Exclusion:
-- #mark(red)[(EC1)] The search result is not a whole book.
-- #mark(red)[(EC2)] The paper does not deal with migration of monoliths.
+- #mark(red)[(EC1)] The record is not a scientific contribution. Peer review is not required and grey literature is eligible.
+- #mark(red)[(EC2)] The record is a whole book, but single book chapters are allowed.
+- #mark(red)[(EC3)] The study does not concern migration from a monolith application to microservices.
+- #mark(red)[(EC4)] The study only mentions interfaces as technology (e.g. REST or API-Gateway) but don't address their identification, definition, design or evaluation.
+- #mark(red)[(EC5)]: The full text is unavailable or does not provide enough information to assess eligibility.
+
+= Screening Results
+== Refinement 2: Checking Title against IC/EC
+
